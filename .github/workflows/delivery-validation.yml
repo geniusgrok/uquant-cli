@@ -2,6 +2,9 @@ name: Production observer integration
 on:
   pull_request:
     paths: ['cli_runtime/**', 'scripts/**', 'tests/**', '.github/workflows/delivery-validation.yml']
+  push:
+    branches: [main]
+    paths: ['cli_runtime/**', 'scripts/**', 'tests/**', '.github/workflows/delivery-validation.yml']
   workflow_dispatch:
 permissions:
   contents: read

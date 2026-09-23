@@ -109,16 +109,22 @@ def test_bad_paths_and_manifest(tmp_path):
         verify(tmp_path, {"data.json": {"bytes": 0, "sha256": "bad"}})
 
 
-def test_preclose_never_refreshes_or_decides(tmp_path):
+def test_preclose_publishes_status_markdown_without_deciding(tmp_path):
     st, _ = store(tmp_path)
+    remote = tmp_path / "remote.git"
     work = tmp_path / "work"
     work.mkdir()
     metadata = {**result(), "status": "MARKET_NOT_CLOSED"}
     metadata.pop("signals")
     with patch.object(daily, "refresh") as refresh, patch.object(daily, "compute") as compute:
-        daily.run_once(st, work, metadata)
+        outcome = daily.run_once(st, work, metadata)
         refresh.assert_not_called()
         compute.assert_not_called()
+    report = "reports/2026-09-23/report.md"
+    content = (st.root / report).read_bytes()
+    assert b"MARKET_NOT_CLOSED" in content
+    assert b"本次未产生新的生产信号" in content
+    assert st.git("show", "FETCH_HEAD:" + report).stdout == content
 
 
 def test_failed_refresh_never_claims_or_decides(tmp_path):

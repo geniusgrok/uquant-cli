@@ -91,7 +91,11 @@ def run_once(store: GitStore, work: Path, metadata: dict) -> dict:
         result = {**metadata, "actual_market_date": None, "signals_generated": False,
                   "finished_at": datetime.now(SHANGHAI).isoformat()}
         put(work, "status.json", result)
-        (work / "report.md").write_text(render(result), encoding="utf-8")
+        report_name = f"reports/{day}/report.md"
+        report_path = store.root / report_name
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(render(result), encoding="utf-8")
+        store.publish([report_name], "Publish daily status report " + day)
         return result
     previous = prior(store.root, metadata)
     if previous is not None and previous["target_date"] == day:

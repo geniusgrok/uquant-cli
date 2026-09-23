@@ -25,7 +25,7 @@ def main() -> int:
         if (output / "integration.json").exists():
             print((output / "integration.json").read_text())
         # Public tests reference no private source lines; pytest output stays local.
-        tests = call([str(root / "venv/bin/python"), "-m", "pytest", "tests/test_runtime.py", "tests/test_publication.py", "-q",
+        tests = call([str(root / "venv/bin/python"), "-m", "pytest", "tests/test_runtime.py", "tests/test_publication.py", "tests/test_calendar.py", "-q",
                       "--junitxml=" + str(root / "junit.xml")], CLI_ROOT, env, events, "RUNTIME_TESTS")
         import xml.etree.ElementTree as ET
         suites = ET.parse(root / "junit.xml").getroot()

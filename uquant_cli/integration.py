@@ -42,7 +42,7 @@ def check(source: Path, root: Path) -> dict:
     store = GitStore(root / "state", str(remote))
     calls = []
 
-    def fixture_refresh(destination: Path, day: str, previous: str) -> dict:
+    def fixture_refresh(destination: Path, day: str, previous: str, *, prior_audit=None) -> dict:
         calls.append(day)
         destination.mkdir()
         for symbol in members:

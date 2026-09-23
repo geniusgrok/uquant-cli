@@ -104,7 +104,8 @@ def run_once(store: GitStore, work: Path, metadata: dict) -> dict:
                   "finished_at": datetime.now(SHANGHAI).isoformat()}
         put(work, "status.json", result)
         return result
-    refresh(work / "inputs", day, metadata["previous_session"])
+    saved_sources = read(store.root, "inputs/audit.json") if previous is not None else None
+    refresh(work / "inputs", day, metadata["previous_session"], prior_audit=saved_sources)
     claim_path = f"claims/{day}.json"
     claim = {**metadata, "status": "STARTED"}
     put(store.root, claim_path, claim)

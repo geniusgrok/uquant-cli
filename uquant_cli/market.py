@@ -123,7 +123,7 @@ def request_deadline(seconds: float = 25):
             signal.setitimer(signal.ITIMER_REAL, *old_timer)
 
 
-def _normalized(raw, symbol: str, day: str, provider: str, *, index: bool = False):
+def _normalized(raw, symbol: str, day: str, provider: str, *, index: bool = False, minimum_rows: int = 2):
     from uquant.data import DataStore
 
     mapping = {"日期": "date", "开盘": "open", "最高": "high", "最低": "low",
@@ -143,7 +143,7 @@ def _normalized(raw, symbol: str, day: str, provider: str, *, index: bool = Fals
     if not estimated_amount and pd.to_numeric(frame["amount"], errors="coerce").isna().any():
         raise ValueError("provider amount missing")
     frame = DataStore._validate(frame, symbol)
-    if len(frame) < 2 or str(frame.index[-1].date()) != day:
+    if len(frame) < minimum_rows or str(frame.index[-1].date()) != day:
         raise ValueError("target close or history missing")
     return frame, estimated_amount
 
@@ -167,7 +167,7 @@ def _select_source(providers: dict, preferred: str | None, normalize, attempts: 
     raise last if last is not None else ValueError("no market provider")
 
 
-def refresh(root: Path, day: str, previous: str) -> dict:
+def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = None) -> dict:
     from uquant.engine import INDEX_SYMBOLS, REFERENCE_UNIVERSE
 
     ak = importlib.import_module("akshare")
@@ -189,9 +189,12 @@ def refresh(root: Path, day: str, previous: str) -> dict:
 
     def fetch(key, symbol, providers, kind):
         attempts[key] = []
+        saved = (prior_audit or {}).get("quotes" if kind == "raw" else "coverage", {})
+        first = saved.get(symbol, {}).get("provider") or preferred[kind]
         frame, provider, estimated = _select_source(
-            providers, preferred[kind],
-            lambda raw, name: _normalized(raw, symbol, day, name, index=kind == "index"),
+            providers, first,
+            lambda raw, name: _normalized(raw, symbol, day, name, index=kind == "index",
+                                          minimum_rows=1 if kind == "raw" else 2),
             attempts[key])
         preferred[kind] = provider
         return frame, provider, estimated

@@ -254,3 +254,28 @@ def test_provider_deadline_interrupts_stalled_call():
             time.sleep(.2)
     assert signal.getsignal(signal.SIGALRM) == previous
     assert signal.getitimer(signal.ITIMER_REAL)[0] == 0
+
+
+def test_refresh_reuses_persisted_sources_and_accepts_single_day_raw_quote(tmp_path, monkeypatch):
+    import sys
+    from types import SimpleNamespace
+    from unittest.mock import Mock
+    import pandas as pd
+
+    frame = pd.DataFrame({'date': ['2026-09-22', '2026-09-23'], 'open': [10, 11],
+                          'high': [12, 13], 'low': [9, 10], 'close': [11, 12],
+                          'volume': [1000, 2000], 'amount': [11000, 24000]})
+    eastmoney = Mock(side_effect=ConnectionError('must not request an unneeded source'))
+    ak = SimpleNamespace(stock_zh_a_hist=eastmoney,
+                         stock_zh_a_daily=lambda **kw: frame if kw['adjust'] else frame.iloc[-1:],
+                         stock_zh_a_hist_tx=eastmoney)
+    monkeypatch.setitem(sys.modules, 'akshare', ak)
+    monkeypatch.setitem(sys.modules, 'uquant.engine', SimpleNamespace(INDEX_SYMBOLS=(), REFERENCE_UNIVERSE=()))
+    monkeypatch.setattr(market, 'SYMBOLS', ('sz300308',))
+    audit = market.refresh(tmp_path / 'inputs', '2026-09-23', '2026-09-22', prior_audit={
+        'coverage': {'sz300308': {'provider': 'Sina'}}, 'quotes': {'sz300308': {'provider': 'Sina'}}})
+    assert not audit['failures']
+    assert audit['coverage']['sz300308']['provider'] == 'Sina'
+    assert audit['quotes']['sz300308']['close'] == 12
+    assert audit['quotes']['sz300308']['change_pct'] is None
+    eastmoney.assert_not_called()

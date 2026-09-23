@@ -1,0 +1,27 @@
+{
+  "account_identity": {
+    "bytes": 10873,
+    "sha256": "3be2c71e66043520e752b3e370c46f05c5ab9e2ba2b80fb28d22313168b27a89"
+  },
+  "duplicate_decisions": 0,
+  "fixture_only": true,
+  "production_decisions": 2,
+  "runner_sha": "567c596a57f800e4756dfa011bfdf65676754677",
+  "sessions": [
+    {
+      "comparison": "INCOMPARABLE",
+      "day": "2026-08-04",
+      "status": "COMPLETE"
+    },
+    {
+      "comparison": "COMPARABLE",
+      "day": "2026-08-05",
+      "status": "COMPLETE"
+    }
+  ],
+  "source_sha": "57c63bc3840d74876a37f55ea4b712b6fd96ccd4",
+  "status": "PASS",
+  "synthetic_fixture_symbols": [
+    "sz002384"
+  ]
+}

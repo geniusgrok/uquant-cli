@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from uquant_cli import daily
+from uquant_cli import daily, market
 from uquant_cli.market import SHANGHAI, SYMBOLS, WATCHLIST, session_context
 from uquant_cli.report import compare, render, signals
 from uquant_cli.store import GitStore, REMOTE, identity, path_in, put, verify
@@ -171,3 +171,30 @@ def test_reused_result_does_not_execute(tmp_path):
         assert daily.run_once(st, work, {**value, "status": "READY"})["status"] == "REUSED"
         refresh.assert_not_called()
         compute.assert_not_called()
+
+
+
+def test_market_request_retries_transient_failures_only(monkeypatch):
+    monkeypatch.setattr(market, "pause", lambda _: None)
+    calls = 0
+
+    def transient_then_success():
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            raise ConnectionError("temporary")
+        return "ok"
+
+    assert market._retry_request(transient_then_success) == "ok"
+    assert calls == 3
+
+    calls = 0
+
+    def invalid_response():
+        nonlocal calls
+        calls += 1
+        raise ValueError("permanent")
+
+    with pytest.raises(ValueError, match="permanent"):
+        market._retry_request(invalid_response)
+    assert calls == 1

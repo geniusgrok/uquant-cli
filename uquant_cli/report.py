@@ -128,6 +128,8 @@ def render(result: dict) -> str:
                   "本次没有生成可展示的市场和逐只标的信号。未收盘、休市或行情校验失败时，不使用旧信号代替当日结果。"]
         if result.get("failure"):
             lines.append("失败阶段/类型：" + display(result["failure"]))
+        if result.get("failure_summary"):
+            lines.append("失败摘要：" + display(result["failure_summary"]))
         return "\n".join(lines) + "\n"
 
     lines.insert(7, f"观察起点：{result.get('observer_start', '未取得')}；初始模拟现金：{result.get('initial_cash', '未提供')}元。")

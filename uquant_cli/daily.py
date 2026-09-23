@@ -157,8 +157,10 @@ def main() -> int:
     except Exception as exc:
         # Do not publish traceback source lines, arbitrary exception text, or process environments.
         result = {**metadata, "status": "FAILED", "actual_market_date": None,
-                  "failure": {"stage": stage, "type": type(exc).__name__},
+                  "failure": {"stage": getattr(exc, "stage", stage), "type": type(exc).__name__},
                   "finished_at": datetime.now(SHANGHAI).isoformat()}
+        if getattr(exc, "safe_summary", None):
+            result["failure_summary"] = exc.safe_summary
         put(work, "status.json", result)
         if not (work / "report.md").exists():
             (work / "report.md").write_text(render(result), encoding="utf-8")

@@ -3,7 +3,9 @@ from __future__ import annotations
 
 import importlib
 import math
+from collections import Counter
 from datetime import datetime, time
+from time import sleep as pause
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -20,6 +22,48 @@ WATCHLIST = (
     ("sz002384", "东山精密"),
 )
 SYMBOLS = tuple(symbol for symbol, _ in WATCHLIST)
+
+
+class LiveInputError(ValueError):
+    def __init__(self, failures: dict[str, dict[str, str]]) -> None:
+        self.stage = "MARKET_DATA"
+        counts = Counter(item["category"] for item in failures.values())
+        labels = {"network": "网络连接失败", "data_contract": "行情质量校验失败",
+                  "invalid_response": "接口返回不完整", "provider": "数据接口异常"}
+        details = "、".join(f"{labels.get(key, '其他异常')}{count}项" for key, count in sorted(counts.items()))
+        self.safe_summary = f"{len(failures)}项行情未通过校验（{details}）；未使用旧数据替代。"
+        super().__init__(self.safe_summary)
+
+
+def _retry_request(operation, attempts: int = 3):
+    for index in range(attempts):
+        try:
+            return operation()
+        except Exception as exc:
+            name = type(exc).__name__
+            retryable = (isinstance(exc, (TimeoutError, OSError))
+                         or name in {"ConnectionError", "ConnectTimeout", "ReadTimeout",
+                                     "Timeout", "DataContractError"}
+                         or (isinstance(exc, ValueError)
+                             and str(exc) in {"target close or history missing",
+                                              "index target close or history missing",
+                                              "raw quote missing or duplicated"}))
+            if not retryable or index + 1 == attempts:
+                raise
+            pause(2**index)
+    raise RuntimeError("market request retry exhausted")
+
+
+def _failure_category(exc: Exception) -> str:
+    name = type(exc).__name__
+    if isinstance(exc, (TimeoutError, OSError)) or name in {
+            "ConnectionError", "ConnectTimeout", "ReadTimeout", "Timeout"}:
+        return "network"
+    if name == "DataContractError":
+        return "data_contract"
+    if isinstance(exc, ValueError):
+        return "invalid_response"
+    return "provider"
 
 
 def session_context(dates: list[str], now: datetime) -> dict:
@@ -68,56 +112,72 @@ def refresh(root: Path, day: str, previous: str) -> dict:
     root.mkdir(parents=True, exist_ok=False)
     store = DataStore(root)
     coverage, failures, quotes = {}, {}, {}
+
+    def record_failure(key: str, exc: Exception) -> None:
+        failures[key] = {"type": type(exc).__name__, "category": _failure_category(exc)}
+
     for symbol in sorted(set(SYMBOLS) | set(REFERENCE_UNIVERSE)):
         try:
-            store.refresh_akshare([symbol], end=day)
-            frame = store.load(symbol)
+            def load_stock():
+                store.refresh_akshare([symbol], end=day)
+                frame = store.load(symbol)
+                if str(frame.index[-1].date()) != day or len(frame) < 2:
+                    raise ValueError("target close or history missing")
+                return frame
+            frame = _retry_request(load_stock)
             coverage[symbol] = {"date": str(frame.index[-1].date()), "rows": len(frame),
                                 "adjustment": "qfq"}
-            if coverage[symbol]["date"] != day or len(frame) < 2:
-                raise ValueError("target close or history missing")
         except Exception as exc:
-            failures[symbol] = type(exc).__name__
+            record_failure(symbol, exc)
+
     mapping = {"日期": "date", "开盘": "open", "最高": "high", "最低": "low",
                "收盘": "close", "成交量": "volume", "成交额": "amount"}
     for symbol in INDEX_SYMBOLS:
         try:
-            raw = ak.index_zh_a_hist(symbol=symbol[2:], period="daily", start_date="20000101",
-                                     end_date=day.replace("-", ""))
-            frame = raw.rename(columns=mapping)[list(mapping.values())].copy()
-            frame["volume"] = pd.to_numeric(frame["volume"], errors="raise") * 100
-            frame = DataStore._validate(frame, symbol)
+            def load_index():
+                raw = ak.index_zh_a_hist(symbol=symbol[2:], period="daily", start_date="20000101",
+                                         end_date=day.replace("-", ""))
+                frame = raw.rename(columns=mapping)[list(mapping.values())].copy()
+                frame["volume"] = pd.to_numeric(frame["volume"], errors="raise") * 100
+                frame = DataStore._validate(frame, symbol)
+                if str(frame.index[-1].date()) != day or len(frame) < 2:
+                    raise ValueError("index target close or history missing")
+                return frame
+            frame = _retry_request(load_index)
             coverage[symbol] = {"date": str(frame.index[-1].date()), "rows": len(frame),
                                 "adjustment": "raw"}
-            if coverage[symbol]["date"] != day or len(frame) < 2:
-                raise ValueError("index target close or history missing")
             frame.reset_index().to_csv(root / (symbol + ".csv"), index=False)
         except Exception as exc:
-            failures[symbol] = type(exc).__name__
+            record_failure(symbol, exc)
+
     for symbol in SYMBOLS:
         try:
-            raw = ak.stock_zh_a_hist(symbol=symbol[2:], period="daily", adjust="",
-                                     start_date=previous.replace("-", ""),
-                                     end_date=day.replace("-", ""))
+            def load_raw_quote():
+                raw = ak.stock_zh_a_hist(symbol=symbol[2:], period="daily", adjust="",
+                                         start_date=previous.replace("-", ""),
+                                         end_date=day.replace("-", ""))
+                dates = pd.to_datetime(raw["日期"], errors="raise").dt.strftime("%Y-%m-%d")
+                selected = raw.loc[dates == day]
+                if len(selected) != 1:
+                    raise ValueError("raw quote missing or duplicated")
+                row = selected.iloc[0]
+                close, change = float(row["收盘"]), row.get("涨跌幅")
+                if not math.isfinite(close) or close <= 0:
+                    raise ValueError("invalid raw close")
+                change = float(change) if pd.notna(change) else None
+                if change is not None and not math.isfinite(change):
+                    raise ValueError("invalid daily change")
+                return raw, {"date": day, "close": close, "change_pct": change,
+                             "adjustment": "raw"}
+            raw, quote = _retry_request(load_raw_quote)
             raw.to_csv(root / (symbol + ".raw.csv"), index=False)
-            dates = pd.to_datetime(raw["日期"], errors="raise").dt.strftime("%Y-%m-%d")
-            selected = raw.loc[dates == day]
-            if len(selected) != 1:
-                raise ValueError("raw quote missing or duplicated")
-            row = selected.iloc[0]
-            close, change = float(row["收盘"]), row.get("涨跌幅")
-            if not math.isfinite(close) or close <= 0:
-                raise ValueError("invalid raw close")
-            change = float(change) if pd.notna(change) else None
-            if change is not None and not math.isfinite(change):
-                raise ValueError("invalid daily change")
-            quotes[symbol] = {"date": day, "close": close, "change_pct": change,
-                              "adjustment": "raw"}
+            quotes[symbol] = quote
         except Exception as exc:
-            failures[symbol + ":raw"] = type(exc).__name__
+            record_failure(symbol + ":raw", exc)
+
     audit = {"provider": "AkShare/Eastmoney", "fetched_at": datetime.now(SHANGHAI).isoformat(),
              "coverage": coverage, "quotes": quotes, "failures": failures}
     put(root, "audit.json", audit)
     if failures:
-        raise ValueError("live input validation failed")
+        raise LiveInputError(failures)
     return audit

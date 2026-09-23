@@ -1,0 +1,30 @@
+[
+  {
+    "stage": "LOCKED_INSTALL",
+    "started_at": "2026-09-23T12:57:50.536990+08:00",
+    "finished_at": "2026-09-23T12:57:52.205221+08:00",
+    "exit_code": 0,
+    "error_type": null
+  },
+  {
+    "stage": "LOCKED_INSTALL",
+    "started_at": "2026-09-23T12:57:52.205246+08:00",
+    "finished_at": "2026-09-23T12:57:54.933296+08:00",
+    "exit_code": 0,
+    "error_type": null
+  },
+  {
+    "stage": "PRODUCTION_INTEGRATION",
+    "started_at": "2026-09-23T12:57:54.933421+08:00",
+    "finished_at": "2026-09-23T12:59:15.491218+08:00",
+    "exit_code": 0,
+    "error_type": null
+  },
+  {
+    "stage": "RUNTIME_TESTS",
+    "started_at": "2026-09-23T12:59:15.491484+08:00",
+    "finished_at": "2026-09-23T12:59:18.564820+08:00",
+    "exit_code": 0,
+    "error_type": null
+  }
+]

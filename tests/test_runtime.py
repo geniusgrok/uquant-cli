@@ -30,11 +30,24 @@ def store(tmp_path):
     return GitStore(tmp_path / "writer", str(remote)), remote
 
 
-def test_calendar_close_and_holidays():
-    assert session_context(DATES, datetime(2026, 9, 23, 12, tzinfo=SHANGHAI))["status"] == "MARKET_NOT_CLOSED"
-    assert session_context(DATES, datetime(2026, 9, 23, 17, 1, tzinfo=SHANGHAI))["status"] == "READY"
-    context = session_context(DATES, datetime(2026, 9, 25, 17, tzinfo=SHANGHAI))
-    assert context["status"] == "MARKET_CLOSED" and context["previous_session"] == "2026-09-24"
+def test_calendar_selects_latest_completed_session_before_1530():
+    before_close = session_context(DATES, datetime(2026, 9, 23, 15, 29, tzinfo=SHANGHAI))
+    assert before_close["status"] == "READY"
+    assert before_close["target_date"] == "2026-09-22"
+    assert before_close["previous_session"] == "2026-09-21"
+    assert "15:30前" in before_close["selection_reason"]
+
+    at_close = session_context(DATES, datetime(2026, 9, 23, 15, 30, tzinfo=SHANGHAI))
+    assert at_close["target_date"] == "2026-09-23"
+    assert at_close["previous_session"] == "2026-09-22"
+
+    holiday = session_context(DATES, datetime(2026, 9, 25, 17, tzinfo=SHANGHAI))
+    assert holiday["status"] == "READY"
+    assert holiday["target_date"] == "2026-09-24"
+    assert holiday["previous_session"] == "2026-09-23"
+
+    weekend = session_context(DATES, datetime(2026, 9, 26, 12, tzinfo=SHANGHAI))
+    assert weekend["target_date"] == "2026-09-24"
 
 
 @pytest.mark.parametrize("dates", [[], DATES[:2], [*DATES, "2026-09-26"]])

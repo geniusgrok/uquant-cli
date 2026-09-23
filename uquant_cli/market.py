@@ -34,11 +34,19 @@ def session_context(dates: list[str], now: datetime) -> dict:
         parsed = datetime.strptime(value, "%Y-%m-%d").date()
         if parsed.isoformat() != value or parsed.weekday() > 4:
             raise ValueError("invalid trading session")
-    previous = max(value for value in sessions if value < day)
-    status = "READY" if day in sessions else "MARKET_CLOSED"
-    if status == "READY" and local.time() < time(15):
-        status = "MARKET_NOT_CLOSED"
-    return {"target_date": day, "previous_session": previous, "status": status,
+    is_session = day in sessions
+    if is_session and local.time() >= time(15, 30):
+        target = day
+        reason = "当日已过15:30收盘确认时点"
+    else:
+        target = max((value for value in sessions if value < day), default="")
+        reason = ("15:30前使用前一交易日收盘数据" if is_session
+                  else "非交易日使用最近一个已完成交易日")
+    previous = max((value for value in sessions if value < target), default="")
+    if not target or not previous:
+        raise ValueError("trading calendar history missing")
+    return {"requested_date": day, "target_date": target, "previous_session": previous,
+            "status": "READY", "selection_reason": reason,
             "checked_at": local.isoformat(), "calendar_source": "akshare/Sina"}
 
 

@@ -111,6 +111,7 @@ def render(result: dict) -> str:
     lines = [
         "# Uquant 13只标的盘后日报", "",
         f"目标交易日：{target_date}；行情截止日：{result.get('actual_market_date') or '未取得'}。",
+        f"交易日选择：{result.get('selection_reason', '按目标交易日计算')}。",
         f"策略结果状态：**{status_names.get(status, status)}（{status}）**。",
         f"实际生产源码版本：{result.get('source_sha', '未取得')}。",
         f"[查看本次计算的运行记录]({result['run_url']})。",

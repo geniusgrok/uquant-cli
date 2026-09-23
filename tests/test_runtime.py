@@ -126,7 +126,7 @@ def test_preclose_publishes_status_markdown_without_deciding(tmp_path):
     report = "reports/2026-09-23.md"
     content = (st.root / report).read_bytes()
     assert b"MARKET_NOT_CLOSED" in content
-    assert b"本次未产生新的生产信号" in content
+    assert "本次未产生新的生产信号".encode("utf-8") in content
     assert st.git("show", "FETCH_HEAD:" + report).stdout == content
 
 

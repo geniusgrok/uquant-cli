@@ -1,32 +1,80 @@
-# Uquant scheduled runner
+# Uquant 盘后日报运行仓库
 
-This public repository contains only the bootstrap for the private production source.
-The existing schedule is weekdays at 09:01 UTC (17:01 Asia/Shanghai). It calls the
-current private `ychenracing/uquant` main implementation in `scripts.daily_scan`.
-That implementation checks the trading calendar and completed close, refreshes
-live inputs, runs the production decision once, compares the previous trading day,
-and persists report/account/input originals in the private report branch.
+本仓库负责运行、行情刷新、连续观察状态、13票扫描、昨日比较和日报保存。
+`ychenracing/uquant` 仅提供运行时最新 `main` 的生产源码，不接收本任务任何
+报告、数据、日志、验证证据或其他生成物；本流水线不需要合并私有仓库的日报PR。
 
-## Confidentiality and activation
+## 调度与运行
 
-`UQUANT_READ_TOKEN` is used only for private source checkout. It is never a writer.
-The public runner also requires a separately authorized, already configured
-`UQUANT_REPORT_WRITE_TOKEN`, limited to the private report destination. Adding this
-workflow does not create that Secret, obtain its value, or grant permissions.
-Without a private writer it fails visibly before production execution; green
-checkout or a historic smoke run is not a successful daily report.
+唯一盘后定时为周一至周五北京时间17:01（UTC cron `1 9 * * 1-5`）。每次先核验
+交易日历覆盖和15:00收盘时点。休市、未收盘或无法核验日历时不产生新信号，
+记录可见状态。工作流也支持手动启动及相关部署代码合并后的就绪检查；
+所有入口共享并发组与持久化交易日claim，不能因手动启动而重复计算。
+ChatGPT定时任务只获取已有当天运行，不再重复dispatch。
 
-No private source, full report, account, private log, or private cache is uploaded
-as a public Artifact or job summary. Only allowlisted status text is printed.
-Private results and run logs are written to `ychenracing/uquant` branch
-`uquant-daily-reports`, with `latest.json`, `reports/YYYY-MM-DD/report.md`, structured
-results and per-run log manifests. Publishing uses a non-force Git update and
-actual remote byte, SHA-256 and Git blob readback.
+`UQUANT_READ_TOKEN` 仅用于只读拉取生产源码。报告保存使用本仓库job自带的
+`GITHUB_TOKEN`，仅报告job声明`contents: write`。不需要额外私有写入Secret，
+也不使用读取令牌派生加密密钥。源码checkout禁止push；源码令牌不传入生产进程。
 
-A persistent date claim is written before the engine call. In-flight/uncertain
-claims block replay; concurrency alone is not the idempotency mechanism. Inspect
-private claim/result records before retrying unknown runs. Missing or revised
-historical inputs and missing account continuity fail closed, not by resetting
-the observer. This is a no-execution observation account, not the user's brokerage
-account; no fills or user holdings are invented. See the private repository's
-`docs/DAILY_SCAN.md` for exact fields, recovery and validation limits.
+运行编排在`cli_runtime/`与`scripts/`，通过Python导入外部源码的
+`ProductionEngine.decide`。不复制或修改生产策略、参数、风控和冻结数据。
+运行环境遵循源码`uv.lock`，Python3.12.13 / uv0.11.33。长生产验证与扫描使用
+源码自带Cloud Guard，但其工作目录位于本任务的CLI运行空间。
+
+## 报告和数据位置
+
+所有正式生成物位于**本仓库的`uquant-daily-reports`分支**，不是策略仓库：
+
+- `latest_run.json`：最近一次执行状态、对应Run与记录路径；失败/休市/未收盘也有记录。
+- `latest.json`：最后一次有效决策的结构化结果入口和SHA-256/长度清单。
+- `reports/YYYY-MM-DD/report.md`及`result.json`：中文完整日报、13票与昨日比较。
+- 同日`decision.json`：生产实际输出；目标/意图不是实际成交。
+- `state/account.json`：连续不执行的观察账户；仅系统默认模拟现金，无用户实盘输入。
+- `inputs/`：实际计算用完整行情，逐票原始展示报价与日期/质量审计；历史版本按Git提交恢复。
+- `claims/YYYY-MM-DD.json`：决策前持久化的日期占用，只有一个写者可以成功。
+- `runs/RUN-ATTEMPT/`：执行事件、结果状态、失败时尚未发布的输入/决策原件和校验清单。
+
+日报、结构化输出和这套非实盘观察数据按用户授权公开。**私有策略源码、令牌、
+真实账户和含源码行的traceback不得公开。**日志从生成时即只记录阶段、时间、
+退出码和异常类型，不将任意依赖安装输出或原始traceback当成公开日志。没有
+额外私有日志写入通道，也不会把临时未保全的原始调试输出说成已经远端保存。
+旧`.state/runs/`加密诊断归档保持不动；若发现旧加密账户状态，不得悄悄初始化新账户。
+
+## 数据与信号边界
+
+固定顺序：300308中际旭创、300502新易盛、300394天孚通信、688256寒武纪、
+603986兆易创新、688072拓荆科技、688300联瑞新材、300054鼎龙股份、688361中科飞测、
+002409雅克科技、688498源杰科技、688120华海清科、002384东山精密。
+
+股票数据沿用生产前复权适配器；指数使用原始指数接口，行情字段按接口单位转换。
+展示收盘与涨跌幅另取不复权数据，不拿复权价冒充实际收盘。完整参考池、指数、
+预热历史和目标交易日覆盖缺失时失败；保留审计，不启用allow-stale。
+官方接口说明：
+https://akshare.akfamily.xyz/data/index/index.html#index-zh-a-hist
+https://akshare.akfamily.xyz/data/tool/tool.html
+
+这是连续、不执行的观察账户：不假造用户资金、持仓或成交，不每天清空风险状态，
+不把订单意图当成已经成交。没有实际订单不推断为HOLD或允许买入；不存在的字段
+写“未提供”。Risk Sentinel覆盖非READY时标记PARTIAL，而不是完整风险资料通过。
+
+昨日是前一交易日。旧结果须校验清单、观察身份、经济代码和配置；不存在基线时
+写“不可比较”，不补造历史。保留订单的signal_date区分旧意图和新信号。
+
+## 幂等、事务与恢复
+
+输入校验通过后，先正常推送并回读当天claim，再调用一次生产引擎。未知或未完成
+claim阻止自动重算；数据、代码、配置变更及漏交易日仍遵循生产连续性校验，不能
+清空账户来“修复”。同日已有有效报告时回读复用并保留实际原源码SHA。
+
+报告、状态和输入一次Git commit/ref原子发布；每个文件回读远端字节、长度、
+SHA-256与Git blob OID。push结果不确定先fetch核对，不盲目重推、不强推。
+发布失败后的原始决策只在runs恢复区，不冒充latest有效报告。写入通道完全失败时
+明确报告临时原件风险，不误报已保存。诊断恢复先读取claim/latest/run记录再行动。
+
+## 验证
+
+公共bootstrap测试检查账号、凭据分离和单一调度。运行层定向测试覆盖日历、
+字段缺失、完整13票、状态不重置、同日去重、并发claim和实际Git字节回读。
+`delivery-validation.yml`在本仓库读取当前生产main并执行连续两个历史夹具决策，
+再验证第三次同日调用不进入引擎、重新读取保存账户后校验一致。它是生产集成测试，
+不是今日行情扫描，不对外发布私有源码或夹具日报，也不向源码仓库写验证结果。

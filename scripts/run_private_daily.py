@@ -1,89 +1,104 @@
-"""Public bootstrap only. Private source, execution output and state never go to public artifacts."""
+"""Read production source; run and persist exclusively in geniusgrok/uquant-cli."""
 from __future__ import annotations
 
-import base64
 import json
 import os
 import subprocess
-from datetime import date
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+CLI_ROOT = Path(__file__).resolve().parents[1]
+SOURCE_REPOSITORY = "https://github.com/ychenracing/uquant.git"
+SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 
-def run(command: list[str], *, cwd: Path, env: dict[str, str], log) -> int:
-    return subprocess.run(command, cwd=cwd, env=env, stdout=log, stderr=subprocess.STDOUT,
-                          timeout=840, check=False).returncode
+def call(command: list[str], cwd: Path, env: dict[str, str], events: list,
+         stage: str, timeout: int = 240) -> int:
+    started = datetime.now(SHANGHAI).isoformat()
+    code, error = 1, None
+    try:
+        # Arbitrary dependency/source output is not a public diagnostic channel.
+        code = subprocess.run(command, cwd=cwd, env=env, stdout=subprocess.DEVNULL,
+                              stderr=subprocess.DEVNULL, timeout=timeout, check=False).returncode
+        return code
+    except Exception as exc:
+        error = type(exc).__name__
+        raise
+    finally:
+        events.append({"stage": stage, "started_at": started,
+                       "finished_at": datetime.now(SHANGHAI).isoformat(),
+                       "exit_code": code, "error_type": error})
+
+
+def prepare(root: Path, events: list, *, validation: bool = False) -> tuple[Path, dict]:
+    source = Path(os.environ["UQUANT_SOURCE_DIR"])
+    if not source.resolve().is_relative_to(CLI_ROOT.resolve()) or not (source / "uquant").is_dir():
+        raise RuntimeError("production source checkout missing")
+    env = os.environ.copy()
+    env.update({"PYTHONPATH": str(CLI_ROOT) + os.pathsep + str(source),
+                "UV_CACHE_DIR": str(root / "uv-cache"), "UV_PYTHON_DOWNLOADS": "never",
+                "PYTHONDONTWRITEBYTECODE": "1", "UV_PROJECT_ENVIRONMENT": str(root / "venv")})
+    # Defense in depth: this checkout has no write token and no usable push URL.
+    subprocess.run(["git", "config", "remote.origin.pushurl", "disabled://source-read-only"],
+                   cwd=source, check=True, capture_output=True)
+    sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip()
+    env["UQUANT_SOURCE_SHA"] = sha
+    env["UQUANT_STARTED_AT"] = datetime.now(SHANGHAI).isoformat()
+    install = ["uv", "sync", "--frozen", "--extra", "data"]
+    if validation:
+        install.extend(["--extra", "dev"])
+    for command in (["python", "-m", "pip", "install", "--disable-pip-version-check", "uv==0.11.33"], install):
+        if call(command, source, env, events, "LOCKED_INSTALL"):
+            raise RuntimeError("locked installation failed")
+    return source, env
 
 
 def main() -> int:
     if os.environ.get("GITHUB_REPOSITORY") != "geniusgrok/uquant-cli":
-        print("UQUANT_SCAN_STATUS=UNAPPROVED_RUNNER")
+        print("UQUANT_STATUS=UNAPPROVED_RUNNER")
         return 1
-    source_token = os.environ.get("UQUANT_READ_TOKEN", "")
-    writer_token = os.environ.get("UQUANT_REPORT_WRITE_TOKEN", "")
-    if not source_token or not writer_token:
-        print("UQUANT_SCAN_STATUS=PRIVATE_DELIVERY_UNCONFIGURED")
-        print("No production scan was started. The read-only source token is not a report writer.")
+    if not os.environ.get("UQUANT_SOURCE_DIR") or not os.environ.get("UQUANT_REPORT_STATE"):
+        print("UQUANT_STATUS=REQUIRED_CHECKOUT_UNAVAILABLE")
         return 78
-    identity = os.environ["GITHUB_RUN_ID"] + "-" + os.environ.get("GITHUB_RUN_ATTEMPT", "1")
-    if not all(part.isdigit() for part in identity.split("-")):
-        return 1
-    root = Path(os.environ["RUNNER_TEMP"]) / ("uquant-daily-" + identity)
+    root = Path(os.environ["RUNNER_TEMP"]) / ("uquant-cli-" + os.environ["GITHUB_RUN_ID"]
+                                                + "-" + os.environ.get("GITHUB_RUN_ATTEMPT", "1"))
     root.mkdir(mode=0o700, exist_ok=False)
-    logs = root / "logs"
-    logs.mkdir(mode=0o700)
-    source = root / "source"
+    events, status = [], 1
     env = os.environ.copy()
-    env.pop("UQUANT_READ_TOKEN", None)
-    env.update({"UV_CACHE_DIR": str(root / "uv-cache"), "UV_PYTHON_DOWNLOADS": "never"})
-    guard = ["python", "-m", "tools.cloud_guard", "--root", str(root / "journal")]
-    auth = base64.b64encode(("x-access-token:" + source_token).encode()).decode()
-    git_env = {**env, "GIT_TERMINAL_PROMPT": "0", "GIT_CONFIG_COUNT": "1",
-               "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
-               "GIT_CONFIG_VALUE_0": "AUTHORIZATION: basic " + auth}
-    status = 1
+    env["PYTHONPATH"] = str(CLI_ROOT)
     try:
-        with (logs / "bootstrap.log").open("wb") as log:
-            if run(["git", "clone", "--quiet", "--depth=1", "--branch=main",
-                    "https://github.com/ychenracing/uquant.git", str(source)], cwd=root, env=git_env, log=log):
-                raise RuntimeError("source checkout failed")
-            for command in (["python", "-m", "pip", "install", "--disable-pip-version-check", "uv==0.11.33"],
-                            ["uv", "sync", "--frozen", "--extra", "data"]):
-                if run(command, cwd=source, env=env, log=log):
-                    raise RuntimeError("locked runtime installation failed")
-            if run([*guard, "inspect"], cwd=source, env=env, log=log):
-                raise RuntimeError("unreconciled execution journal")
-        with (logs / "scan.log").open("wb") as log:
-            status = run([*guard, "run", "--name", "daily-scan", "--timeout", "720", "--",
-                          "uv", "run", "--frozen", "--extra", "data", "python", "-m", "scripts.daily_scan",
-                          "--work-root", str(root / "operation")], cwd=source, env=env, log=log)
-    except Exception:
-        print("UQUANT_SCAN_STATUS=BOOTSTRAP_OR_EXECUTION_FAILED")
+        source, env = prepare(root, events)
+        guard = ["python", "-m", "tools.cloud_guard", "--root", str(root / "journal")]
+        if call([*guard, "inspect"], source, env, events, "JOURNAL_INSPECT"):
+            raise RuntimeError("execution journal not clear")
+        status = call([*guard, "run", "--name", "daily-scan", "--timeout", "720", "--",
+            str(root / "venv/bin/python"), "-m", "cli_runtime.daily", "--root", str(root / "operation")],
+            source, env, events, "DAILY_SCAN", timeout=780)
+    except Exception as exc:
+        events.append({"stage": "BOOTSTRAP", "error_type": type(exc).__name__})
     finally:
-        saved = False
-        if (source / "scripts/daily_scan_store.py").exists():
-            try:
-                with (root / "preservation.log").open("wb") as log:
-                    run([*guard, "export", "--include-private-logs",
-                         "--output", str(logs / "cloud.zip")], cwd=source, env=env, log=log)
-                    saved = run(["python", "-m", "scripts.daily_scan_store", "--logs", str(logs),
-                                 "--checkout", str(root / "log-state")], cwd=source, env=env, log=log) == 0
-            except Exception:
-                saved = False
-        if not saved:
-            print("UQUANT_SCAN_STATUS=PRIVATE_LOG_PRESERVATION_FAILED")
+        (root / "events.json").write_text(json.dumps({"source_sha": env.get("UQUANT_SOURCE_SHA"),
+            "runner_sha": os.environ.get("GITHUB_SHA"), "events": events}, indent=2) + "\n")
+        try:
+            result = call(["python", "-m", "cli_runtime.publish", "--root", str(root)],
+                          CLI_ROOT, env, [], "PUBLIC_PRESERVATION")
+            if result:
+                status = 1
+                print("UQUANT_PRESERVATION=FAILED; originals remain temporary")
+        except Exception:
             status = 1
-    public_status = root / "operation/public_status.json"
-    if status == 0 and public_status.exists():
-        outcome = json.loads(public_status.read_text(encoding="utf-8"))
-        if outcome.get("status") not in {"COMPLETE", "PARTIAL", "REUSED", "MARKET_CLOSED", "MARKET_NOT_CLOSED"}:
-            raise ValueError("invalid public status")
-        day = date.fromisoformat(outcome["target_date"]).isoformat()
-        print("UQUANT_SCAN_STATUS=" + outcome["status"])
-        print("TARGET_DATE=" + day)
-    elif status == 0:
-        status = 1
-    if status:
-        print("UQUANT_SCAN_STATUS=FAILED_OR_BLOCKED; inspect private records; do not rerun blindly")
+            print("UQUANT_PRESERVATION=FAILED; originals remain temporary")
+    report = root / "operation/publishable/status.json"
+    if report.exists():
+        outcome = json.loads(report.read_text())
+        allowed = {"COMPLETE", "PARTIAL", "REUSED", "MARKET_CLOSED", "MARKET_NOT_CLOSED", "FAILED"}
+        if outcome.get("status") in allowed:
+            print("UQUANT_STATUS=" + outcome["status"])
+            print("TARGET_DATE=" + outcome["target_date"])
+    else:
+        print("UQUANT_STATUS=BOOTSTRAP_OR_PROCESS_FAILED")
+    print("REPORT_REPOSITORY=geniusgrok/uquant-cli; SOURCE_REPOSITORY=READ_ONLY")
     return status
 
 

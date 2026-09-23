@@ -1,4 +1,3 @@
-"""The public report path uses this repository's token without a private writer."""
 import contextlib
 import io
 import os
@@ -6,44 +5,41 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from scripts.run_private_daily import main, state_key
+from scripts.run_private_daily import main
 
 
 class BootstrapTests(unittest.TestCase):
-    def test_missing_job_token_fails_before_checkout(self):
-        output = io.StringIO()
-        with patch.dict(os.environ, {"GITHUB_REPOSITORY": "geniusgrok/uquant-cli",
-                                     "UQUANT_READ_TOKEN": "CANARY_NOT_A_REAL_SECRET"}, clear=True):
-            with patch("subprocess.run") as command, contextlib.redirect_stdout(output):
-                self.assertEqual(main(), 78)
-                command.assert_not_called()
-        self.assertIn("REQUIRED_CREDENTIAL_UNAVAILABLE", output.getvalue())
-        self.assertNotIn("CANARY_NOT_A_REAL_SECRET", output.getvalue())
-
-    def test_unapproved_repository_never_starts(self):
-        with patch.dict(os.environ, {"GITHUB_REPOSITORY": "unapproved/runner"}, clear=True):
-            with patch("subprocess.run") as command, contextlib.redirect_stdout(io.StringIO()):
+    def test_unapproved_runner_does_not_execute(self):
+        with patch.dict(os.environ, {"GITHUB_REPOSITORY": "other/repo"}, clear=True):
+            with patch("subprocess.run") as run, contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(main(), 1)
-                command.assert_not_called()
+                run.assert_not_called()
 
-    def test_daily_workflow_uses_own_token_and_one_schedule(self):
-        workflow = Path(".github/workflows/uquant-daily-report.yml").read_text()
-        self.assertEqual(workflow.count("cron:"), 1)
-        self.assertIn("1 9 * * 1-5", workflow)
-        self.assertIn("python scripts/run_private_daily.py", workflow)
-        self.assertIn("contents: write", workflow)
-        self.assertIn("GITHUB_TOKEN: ${{ github.token }}", workflow)
-        self.assertNotIn("UQUANT_REPORT_WRITE_TOKEN", workflow)
-        self.assertNotIn("upload-artifact", workflow)
-        self.assertNotIn("actions/cache", workflow)
+    def test_missing_checkouts_do_not_start(self):
+        with patch.dict(os.environ, {"GITHUB_REPOSITORY": "geniusgrok/uquant-cli"}, clear=True):
+            with patch("subprocess.run") as run, contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main(), 78)
+                run.assert_not_called()
 
-    def test_state_key_is_stable_and_not_the_read_credential(self):
-        token = "CANARY_NOT_A_REAL_SECRET"
-        key = state_key(token)
-        self.assertEqual(len(key), 64)
-        self.assertEqual(key, state_key(token))
-        self.assertNotEqual(key, state_key(token + "rotated"))
-        self.assertNotIn(token, key)
+    def test_credentials_are_managed_only_by_official_checkout(self):
+        launcher = Path("scripts/run_private_daily.py").read_text()
+        store = Path("cli_runtime/store.py").read_text()
+        for text in (launcher, store):
+            self.assertNotIn("UQUANT_READ_TOKEN", text)
+            self.assertNotIn("PASSPHRASE", text)
+            self.assertNotIn("import base64", text)
+        text = Path(".github/workflows/uquant-daily-report.yml").read_text()
+        self.assertEqual(text.count("token: ${{ secrets.UQUANT_READ_TOKEN }}"), 1)
+        self.assertIn("ref: uquant-daily-reports", text)
+        self.assertIn("disabled://source-read-only", launcher)
+
+    def test_workflow_writes_only_to_cli_and_has_one_schedule(self):
+        text = Path(".github/workflows/uquant-daily-report.yml").read_text()
+        self.assertEqual(text.count("cron:"), 1)
+        self.assertIn("1 9 * * 1-5", text)
+        self.assertIn("contents: write", text)
+        self.assertNotIn("UQUANT_REPORT_WRITE_TOKEN", text)
+        self.assertNotIn("upload-artifact", text)
 
 
 if __name__ == "__main__":

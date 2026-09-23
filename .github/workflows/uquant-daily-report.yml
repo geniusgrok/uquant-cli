@@ -5,7 +5,7 @@ on:
     - cron: '1 9 * * 1-5'
   push:
     branches: [main]
-    paths: ['cli_runtime/**', 'scripts/run_private_daily.py', '.github/workflows/uquant-daily-report.yml']
+    paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', '.github/workflows/uquant-daily-report.yml']
 permissions:
   contents: read
 concurrency:
@@ -43,4 +43,4 @@ jobs:
         env:
           UQUANT_SOURCE_DIR: ${{ github.workspace }}/.runtime/production
           UQUANT_REPORT_STATE: ${{ github.workspace }}/.runtime/report-state
-        run: python scripts/run_private_daily.py
+        run: python runner.py

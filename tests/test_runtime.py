@@ -6,10 +6,10 @@ from unittest.mock import patch
 
 import pytest
 
-from cli_runtime import daily
-from cli_runtime.market import SHANGHAI, SYMBOLS, session_context
-from cli_runtime.report import compare, render, signals
-from cli_runtime.store import GitStore, REMOTE, identity, path_in, put, verify
+from uquant_cli import daily
+from uquant_cli.market import SHANGHAI, SYMBOLS, session_context
+from uquant_cli.report import compare, render, signals
+from uquant_cli.store import GitStore, REMOTE, identity, path_in, put, verify
 
 DATES = ["2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-28"]
 

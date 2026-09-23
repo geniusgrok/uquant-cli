@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pandas as pd
 
-from cli_runtime import market
+from uquant_cli import market
 
 
 def test_calendar_uses_recent_sessions_without_rejecting_historic_weekend_regimes(monkeypatch):

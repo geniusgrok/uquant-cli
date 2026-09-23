@@ -1,4 +1,4 @@
-from test_runtime import store
+from tests.test_runtime import store
 
 import pytest
 

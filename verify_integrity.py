@@ -1,11 +1,11 @@
-"""Verify the CLI against read-only current production main, publishing safe metadata only."""
+"""验证运行编排与当前生产引擎集成，只保留安全摘要。"""
 from __future__ import annotations
 
 import json
 import os
 from pathlib import Path
 
-from scripts.run_private_daily import CLI_ROOT, call, prepare
+from bootstrap import CLI_ROOT, call, prepare
 
 
 def main() -> int:
@@ -18,7 +18,7 @@ def main() -> int:
         source, env = prepare(root, events, validation=True)
         guard = ["python", "-m", "tools.cloud_guard", "--root", str(root / "journal")]
         code = call([*guard, "run", "--name", "observer-integration", "--timeout", "300", "--",
-                     str(root / "venv/bin/python"), "-m", "cli_runtime.integration", "--source", str(source),
+                     str(root / "venv/bin/python"), "-m", "uquant_cli.integration", "--source", str(source),
                      "--output", str(output / "integration.json")], source, env, events,
                     "PRODUCTION_INTEGRATION", timeout=330)
         status = code

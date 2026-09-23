@@ -17,7 +17,7 @@ jobs:
           python-version: '3.12.13'
       - run: python -m unittest discover -s tests -p test_bootstrap.py -v
       - name: Archive public CLI source only
-        run: git archive HEAD README.md scripts tests cli_runtime .github/workflows > "$RUNNER_TEMP/public-source.tar"
+        run: git archive HEAD README.md bootstrap.py preflight.py runner.py verify_integrity.py tests uquant_cli .github/workflows > "$RUNNER_TEMP/public-source.tar"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: public-bootstrap-source-${{ github.sha }}

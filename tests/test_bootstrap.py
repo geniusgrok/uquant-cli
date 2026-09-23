@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from scripts.run_private_daily import main
+from runner import main
 
 
 class BootstrapTests(unittest.TestCase):
@@ -22,8 +22,8 @@ class BootstrapTests(unittest.TestCase):
                 run.assert_not_called()
 
     def test_credentials_are_managed_only_by_official_checkout(self):
-        launcher = Path("scripts/run_private_daily.py").read_text()
-        store = Path("cli_runtime/store.py").read_text()
+        launcher = Path("runner.py").read_text()
+        store = Path("uquant_cli/store.py").read_text()
         for text in (launcher, store):
             self.assertNotIn("UQUANT_READ_TOKEN", text)
             self.assertNotIn("PASSPHRASE", text)

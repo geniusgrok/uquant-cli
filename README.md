@@ -12,7 +12,7 @@ ChatGPT定时任务只获取当天已有运行，不重复触发扫描。
 
 生产运行所需的访问配置仅保存在 GitHub Actions 的受保护设置中。报告提交仅使用本仓库工作流的短期权限，不设置额外的私有仓库写入通道，也不把访问配置传入生产进程。
 
-运行编排位于`cli_runtime/`与`scripts/`，通过Python调用生产源码中的`ProductionEngine.decide`。不复制或修改生产策略、参数、风控和冻结数据。运行环境遵循源码`uv.lock`，使用Python 3.12.13与uv 0.11.33。长生产验证与扫描使用项目自带的Cloud Guard，但工作目录位于本仓库的运行空间。
+根目录的`bootstrap.py`、`preflight.py`、`runner.py`和`verify_integrity.py`分别负责环境准备、启动检查、正式运行和集成验证；`uquant_cli/`保存行情、决策、报告及结果存储组件。运行时通过Python调用生产源码中的`ProductionEngine.decide`。不复制或修改生产策略、参数、风控和冻结数据。运行环境遵循源码`uv.lock`，使用Python 3.12.13与uv 0.11.33。长生产验证与扫描使用项目自带的Cloud Guard，但工作目录位于本仓库的运行空间。
 
 ## 报告和数据位置
 

@@ -1,10 +1,10 @@
 name: Production observer integration
 on:
   pull_request:
-    paths: ['cli_runtime/**', 'scripts/**', 'tests/**', '.github/workflows/delivery-validation.yml']
+    paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', 'verify_integrity.py', 'tests/**', '.github/workflows/delivery-validation.yml']
   push:
     branches: [main]
-    paths: ['cli_runtime/**', 'scripts/**', 'tests/**', '.github/workflows/delivery-validation.yml']
+    paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', 'verify_integrity.py', 'tests/**', '.github/workflows/delivery-validation.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -31,7 +31,7 @@ jobs:
       - name: Check unchanged production engine and local test repository
         env:
           UQUANT_SOURCE_DIR: ${{ github.workspace }}/.runtime/production
-        run: python -m scripts.check_private_pipeline
+        run: python verify_integrity.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:

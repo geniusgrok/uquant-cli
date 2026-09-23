@@ -46,6 +46,9 @@ def calendar_now(now: datetime) -> tuple[dict, list[str]]:
     ak = importlib.import_module("akshare")
     frame = ak.tool_trade_date_hist_sina()
     dates = pd.to_datetime(frame["trade_date"], errors="raise").dt.strftime("%Y-%m-%d").tolist()
+    # Decisions only need recent sessions, not historical exchange weekend regimes.
+    start = f"{now.astimezone(SHANGHAI).year - 1}-01-01"
+    dates = [value for value in dates if value >= start]
     return session_context(dates, now), dates
 
 

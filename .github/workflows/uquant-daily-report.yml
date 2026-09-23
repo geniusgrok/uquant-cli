@@ -5,7 +5,7 @@ on:
     - cron: '31 8 * * 1-5'
   push:
     branches: [main]
-    paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', '.github/workflows/uquant-daily-report.yml']
+    paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', 'publish_main_report.py', '.github/workflows/uquant-daily-report.yml']
 permissions:
   contents: read
 concurrency:
@@ -44,3 +44,8 @@ jobs:
           UQUANT_SOURCE_DIR: ${{ github.workspace }}/.runtime/production
           UQUANT_REPORT_STATE: ${{ github.workspace }}/.runtime/report-state
         run: python runner.py
+      - name: Publish verified Markdown report to main
+        env:
+          REPORT_STATE_DIR: ${{ github.workspace }}/.runtime/report-state
+          REPORT_PUBLISH_TOKEN: ${{ github.token }}
+        run: python publish_main_report.py

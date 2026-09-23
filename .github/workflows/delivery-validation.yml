@@ -1,10 +1,10 @@
 name: Production observer integration
 on:
   pull_request:
-    paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', 'verify_integrity.py', 'tests/**', '.github/workflows/delivery-validation.yml']
+    paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', 'publish_main_report.py', 'verify_integrity.py', 'tests/**', '.github/workflows/delivery-validation.yml']
   push:
     branches: [main]
-    paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', 'verify_integrity.py', 'tests/**', '.github/workflows/delivery-validation.yml']
+    paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', 'publish_main_report.py', 'verify_integrity.py', 'tests/**', '.github/workflows/delivery-validation.yml']
   workflow_dispatch:
 permissions:
   contents: read

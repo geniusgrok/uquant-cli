@@ -198,3 +198,59 @@ def test_market_request_retries_transient_failures_only(monkeypatch):
     with pytest.raises(ValueError, match="permanent"):
         market._retry_request(invalid_response)
     assert calls == 1
+
+
+def test_source_failover_validates_prices_and_units():
+    import pandas as pd
+    raw = pd.DataFrame({'date': ['2026-09-22', '2026-09-23'],
+                        'open': [10, 11], 'high': [12, 13], 'low': [9, 10],
+                        'close': [11, 12], 'volume': [1200, 1500], 'amount': [13000, 18000]})
+    invalid = raw.copy()
+    invalid.loc[1, 'high'] = 1
+    attempts = []
+
+    def disconnected():
+        raise ConnectionError('private diagnostic must not be recorded')
+
+    frame, provider, estimated = market._select_source(
+        {'Eastmoney': disconnected, 'Sina': lambda: invalid, 'Tencent': lambda: raw}, None,
+        lambda value, name: market._normalized(value, 'sz300308', '2026-09-23', name), attempts)
+    assert provider == 'Tencent' and not estimated
+    assert frame.iloc[-1]['volume'] == 1500
+    assert [item['status'] for item in attempts] == ['FAILED', 'FAILED', 'OK']
+    assert 'private diagnostic' not in str(attempts)
+    eastmoney, _ = market._normalized(raw, 'sz300308', '2026-09-23', 'Eastmoney')
+    assert eastmoney.iloc[-1]['volume'] == 150000
+    mainboard, _ = market._normalized(raw, 'sz000636', '2026-09-23', 'Tencent')
+    assert mainboard.iloc[-1]['volume'] == 150000
+    index, estimated = market._normalized(raw.drop(columns=['volume']).assign(amount=[100, 200]),
+                                         'sh000300', '2026-09-23', 'Tencent', index=True)
+    assert index.iloc[-1]['volume'] == 200 and estimated
+    with pytest.raises(ValueError, match='target close'):
+        market._normalized(raw, 'sz300308', '2026-09-24', 'Sina')
+
+
+def test_source_failover_prefers_last_healthy_source_and_all_fail_closed():
+    calls = []
+
+    def failed():
+        calls.append('failed')
+        raise ConnectionError('offline')
+
+    frame, provider, _ = market._select_source(
+        {'Eastmoney': failed, 'Sina': lambda: [1, 2]}, 'Sina', lambda value, name: (value, False), [])
+    assert provider == 'Sina' and not calls
+    with pytest.raises(ConnectionError):
+        market._select_source({'Eastmoney': failed, 'Sina': failed}, None,
+                              lambda value, name: (value, False), [])
+
+
+def test_provider_deadline_interrupts_stalled_call():
+    import time
+    import signal
+    previous = signal.getsignal(signal.SIGALRM)
+    with pytest.raises(TimeoutError):
+        with market.request_deadline(.01):
+            time.sleep(.2)
+    assert signal.getsignal(signal.SIGALRM) == previous
+    assert signal.getitimer(signal.ITIMER_REAL)[0] == 0

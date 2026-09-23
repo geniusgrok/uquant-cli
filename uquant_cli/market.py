@@ -1,8 +1,10 @@
-"""Live input adapters; reuse production validation and never change frozen data."""
+"""多源实时行情适配，所有来源均经过生产数据校验。"""
 from __future__ import annotations
 
 import importlib
 import math
+import signal
+from contextlib import contextmanager
 from collections import Counter
 from datetime import datetime, time
 from time import sleep as pause
@@ -104,79 +106,144 @@ def calendar_now(now: datetime) -> tuple[dict, list[str]]:
     return session_context(dates, now), dates
 
 
-def refresh(root: Path, day: str, previous: str) -> dict:
+@contextmanager
+def request_deadline(seconds: float = 25):
+    """限制整个适配器调用的耗时，包含依赖内部未设置超时的请求。"""
+    def expired(signum, frame):
+        raise TimeoutError("market provider deadline exceeded")
+
+    old_handler = signal.signal(signal.SIGALRM, expired)
+    old_timer = signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, old_handler)
+        if old_timer[0]:
+            signal.setitimer(signal.ITIMER_REAL, *old_timer)
+
+
+def _normalized(raw, symbol: str, day: str, provider: str, *, index: bool = False):
     from uquant.data import DataStore
+
+    mapping = {"日期": "date", "开盘": "open", "最高": "high", "最低": "low",
+               "收盘": "close", "成交量": "volume", "成交额": "amount"}
+    frame = raw.rename(columns=mapping).copy()
+    if provider == "Eastmoney":
+        frame["volume"] = pd.to_numeric(frame["volume"], errors="raise") * 100
+    elif provider == "Tencent" and index:
+        # 锁定版本的指数接口将第六项成交量误命名为 amount，实际单位为股。
+        frame = frame.rename(columns={"amount": "volume"})
+    elif provider == "Tencent" and symbol.startswith("sz000"):
+        # 锁定版本误将深市主板视为指数，其股票成交量仍需从手转换为股。
+        frame["volume"] = pd.to_numeric(frame["volume"], errors="raise") * 100
+    dates = pd.to_datetime(frame["date"], errors="raise")
+    frame = frame.loc[dates <= pd.Timestamp(day)].copy()
+    estimated_amount = "amount" not in frame
+    if not estimated_amount and pd.to_numeric(frame["amount"], errors="coerce").isna().any():
+        raise ValueError("provider amount missing")
+    frame = DataStore._validate(frame, symbol)
+    if len(frame) < 2 or str(frame.index[-1].date()) != day:
+        raise ValueError("target close or history missing")
+    return frame, estimated_amount
+
+
+def _select_source(providers: dict, preferred: str | None, normalize, attempts: list):
+    names = list(providers)
+    if preferred in names:
+        names.remove(preferred)
+        names.insert(0, preferred)
+    last = None
+    for name in names:
+        try:
+            with request_deadline():
+                frame, estimated = normalize(providers[name](), name)
+            attempts.append({"provider": name, "status": "OK", "rows": len(frame)})
+            return frame, name, estimated
+        except Exception as exc:
+            last = exc
+            attempts.append({"provider": name, "status": "FAILED",
+                             "type": type(exc).__name__, "category": _failure_category(exc)})
+    raise last if last is not None else ValueError("no market provider")
+
+
+def refresh(root: Path, day: str, previous: str) -> dict:
     from uquant.engine import INDEX_SYMBOLS, REFERENCE_UNIVERSE
 
     ak = importlib.import_module("akshare")
     root.mkdir(parents=True, exist_ok=False)
-    store = DataStore(root)
-    coverage, failures, quotes = {}, {}, {}
+    coverage, failures, quotes, attempts = {}, {}, {}, {}
+    preferred = {"stock": None, "index": None, "raw": None}
 
-    def record_failure(key: str, exc: Exception) -> None:
+    def stock_sources(symbol, start, adjust):
+        return {
+            "Eastmoney": lambda: ak.stock_zh_a_hist(
+                symbol=symbol[2:], period="daily", adjust=adjust,
+                start_date=start.replace("-", ""), end_date=day.replace("-", ""), timeout=10),
+            "Sina": lambda: ak.stock_zh_a_daily(
+                symbol=symbol, start_date=start.replace("-", ""),
+                end_date=day.replace("-", ""), adjust=adjust),
+            "Tencent": lambda: ak.stock_zh_a_hist_tx(
+                symbol=symbol, start_date=start, end_date=day, adjust=adjust, timeout=10),
+        }
+
+    def fetch(key, symbol, providers, kind):
+        attempts[key] = []
+        frame, provider, estimated = _select_source(
+            providers, preferred[kind],
+            lambda raw, name: _normalized(raw, symbol, day, name, index=kind == "index"),
+            attempts[key])
+        preferred[kind] = provider
+        return frame, provider, estimated
+
+    def failed(key, exc):
         failures[key] = {"type": type(exc).__name__, "category": _failure_category(exc)}
 
-    for symbol in sorted(set(SYMBOLS) | set(REFERENCE_UNIVERSE)):
+    for symbol in sorted((set(SYMBOLS) | set(REFERENCE_UNIVERSE)) - set(INDEX_SYMBOLS)):
         try:
-            def load_stock():
-                store.refresh_akshare([symbol], end=day)
-                frame = store.load(symbol)
-                if str(frame.index[-1].date()) != day or len(frame) < 2:
-                    raise ValueError("target close or history missing")
-                return frame
-            frame = _retry_request(load_stock)
-            coverage[symbol] = {"date": str(frame.index[-1].date()), "rows": len(frame),
-                                "adjustment": "qfq"}
+            frame, provider, estimated = fetch(
+                symbol, symbol, stock_sources(symbol, "2000-01-01", "qfq"), "stock")
+            frame.reset_index().to_csv(root / (symbol + ".csv"), index=False)
+            coverage[symbol] = {"date": day, "rows": len(frame), "adjustment": "qfq",
+                                "provider": provider, "amount_estimated": estimated}
         except Exception as exc:
-            record_failure(symbol, exc)
+            failed(symbol, exc)
 
-    mapping = {"日期": "date", "开盘": "open", "最高": "high", "最低": "low",
-               "收盘": "close", "成交量": "volume", "成交额": "amount"}
     for symbol in INDEX_SYMBOLS:
         try:
-            def load_index():
-                raw = ak.index_zh_a_hist(symbol=symbol[2:], period="daily", start_date="20000101",
-                                         end_date=day.replace("-", ""))
-                frame = raw.rename(columns=mapping)[list(mapping.values())].copy()
-                frame["volume"] = pd.to_numeric(frame["volume"], errors="raise") * 100
-                frame = DataStore._validate(frame, symbol)
-                if str(frame.index[-1].date()) != day or len(frame) < 2:
-                    raise ValueError("index target close or history missing")
-                return frame
-            frame = _retry_request(load_index)
-            coverage[symbol] = {"date": str(frame.index[-1].date()), "rows": len(frame),
-                                "adjustment": "raw"}
+            providers = {
+                "Eastmoney": lambda: ak.stock_zh_index_daily_em(
+                    symbol="csi" + symbol[2:], start_date="20000101", end_date=day.replace("-", "")),
+                "Sina": lambda: ak.stock_zh_index_daily(symbol=symbol),
+                "Tencent": lambda: ak.stock_zh_index_daily_tx(
+                    symbol=symbol, start_date="20000101", end_date=day.replace("-", "")),
+            }
+            frame, provider, estimated = fetch(symbol, symbol, providers, "index")
             frame.reset_index().to_csv(root / (symbol + ".csv"), index=False)
+            coverage[symbol] = {"date": day, "rows": len(frame), "adjustment": "raw",
+                                "provider": provider, "amount_estimated": estimated}
         except Exception as exc:
-            record_failure(symbol, exc)
+            failed(symbol, exc)
 
     for symbol in SYMBOLS:
+        key = symbol + ":raw"
         try:
-            def load_raw_quote():
-                raw = ak.stock_zh_a_hist(symbol=symbol[2:], period="daily", adjust="",
-                                         start_date=previous.replace("-", ""),
-                                         end_date=day.replace("-", ""))
-                dates = pd.to_datetime(raw["日期"], errors="raise").dt.strftime("%Y-%m-%d")
-                selected = raw.loc[dates == day]
-                if len(selected) != 1:
-                    raise ValueError("raw quote missing or duplicated")
-                row = selected.iloc[0]
-                close, change = float(row["收盘"]), row.get("涨跌幅")
-                if not math.isfinite(close) or close <= 0:
-                    raise ValueError("invalid raw close")
-                change = float(change) if pd.notna(change) else None
-                if change is not None and not math.isfinite(change):
-                    raise ValueError("invalid daily change")
-                return raw, {"date": day, "close": close, "change_pct": change,
-                             "adjustment": "raw"}
-            raw, quote = _retry_request(load_raw_quote)
-            raw.to_csv(root / (symbol + ".raw.csv"), index=False)
-            quotes[symbol] = quote
+            frame, provider, estimated = fetch(
+                key, symbol, stock_sources(symbol, previous, ""), "raw")
+            row = frame.iloc[-1]
+            change = row.get("涨跌幅")
+            change = float(change) if pd.notna(change) else None
+            if change is not None and not math.isfinite(change):
+                raise ValueError("invalid daily change")
+            # 备用源未给出交易所涨跌幅时保留缺失，避免除权日按原始前收错误推算。
+            quotes[symbol] = {"date": day, "close": float(row["close"]), "change_pct": change,
+                              "adjustment": "raw", "provider": provider}
+            frame.reset_index().to_csv(root / (symbol + ".raw.csv"), index=False)
         except Exception as exc:
-            record_failure(symbol + ":raw", exc)
+            failed(key, exc)
 
-    audit = {"provider": "AkShare/Eastmoney", "fetched_at": datetime.now(SHANGHAI).isoformat(),
-             "coverage": coverage, "quotes": quotes, "failures": failures}
+    audit = {"provider": "AkShare/multi-source", "fetched_at": datetime.now(SHANGHAI).isoformat(),
+             "coverage": coverage, "quotes": quotes, "failures": failures, "attempts": attempts}
     put(root, "audit.json", audit)
     if failures:
         raise LiveInputError(failures)

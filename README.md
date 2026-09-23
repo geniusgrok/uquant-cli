@@ -1,32 +1,47 @@
-# Uquant scheduled runner
+# Uquant 盘后日报
 
-This public repository contains only the bootstrap for the private production source.
-The existing schedule is weekdays at 09:01 UTC (17:01 Asia/Shanghai). It calls the
-current private `ychenracing/uquant` main implementation in `scripts.daily_scan`.
-That implementation checks the trading calendar and completed close, refreshes
-live inputs, runs the production decision once, compares the previous trading day,
-and persists report/account/input originals in the private report branch.
+当前分支为公开交付改造候选，配套存储入口尚未接通；不能作为已上线日报的证明。
 
-## Confidentiality and activation
+每周一至周五北京时间17:01（09:01 UTC），现有 `uquant-daily-report.yml`
+使用私有 `ychenracing/uquant` 当前 main 的生产策略生成13票日报。
+先核验交易日、收盘完成和行情日期；休市、失败、数据不足不能冒充有效信号。
 
-`UQUANT_READ_TOKEN` is used only for private source checkout. It is never a writer.
-The public runner also requires a separately authorized, already configured
-`UQUANT_REPORT_WRITE_TOKEN`, limited to the private report destination. Adding this
-workflow does not create that Secret, obtain its value, or grant permissions.
-Without a private writer it fails visibly before production execution; green
-checkout or a historic smoke run is not a successful daily report.
+## 报告位置
 
-No private source, full report, account, private log, or private cache is uploaded
-as a public Artifact or job summary. Only allowlisted status text is printed.
-Private results and run logs are written to `ychenracing/uquant` branch
-`uquant-daily-reports`, with `latest.json`, `reports/YYYY-MM-DD/report.md`, structured
-results and per-run log manifests. Publishing uses a non-force Git update and
-actual remote byte, SHA-256 and Git blob readback.
+日报直接提交到本仓库的 `uquant-daily-reports` 分支：
 
-A persistent date claim is written before the engine call. In-flight/uncertain
-claims block replay; concurrency alone is not the idempotency mechanism. Inspect
-private claim/result records before retrying unknown runs. Missing or revised
-historical inputs and missing account continuity fail closed, not by resetting
-the observer. This is a no-execution observation account, not the user's brokerage
-account; no fills or user holdings are invented. See the private repository's
-`docs/DAILY_SCAN.md` for exact fields, recovery and validation limits.
+- `latest.json`：最近一次有效结果的日期、源码 SHA、Actions Run、报告路径与校验值。
+- `reports/YYYY-MM-DD/report.md`：公开中文日报，包含市场/风险、全部13票和前一交易日对比。
+- `reports/YYYY-MM-DD/result.json`：公开结构化信号；缺失字段不会补造。
+- `status/YYYY-MM-DD.json`、`claims/YYYY-MM-DD.json`：收盘/休市与执行占用状态。
+
+本次用户明确授权日报公开；因此这里的报告不再要求私有写入通道。
+路径只有在对应执行实际提交成功后才有内容，源码合并和CI测试不等于日报已生成。
+
+## 凭据与公开边界
+
+`UQUANT_READ_TOKEN` 仍只具有原有私有源码读取权限，不用于远端写入。
+报告写入使用本工作流自己的 `GITHUB_TOKEN`，仅报告 job 配置 `contents: write`。
+不需要 `UQUANT_REPORT_WRITE_TOKEN` 或另建写入 Secret。
+
+公开的是日报和信号，不是私有策略源码、内部账户快照或原始诊断日志。
+后两者由 GnuPG AES-256 加密，按8 MiB分片保存在同一分支的 `.state/`，
+保留原件而非仅摘要，并核对分片、总长度、解密后原件和远端 Git 字节。
+源码不会进入明文报告；公开日志只输出状态和非敏感验证元数据。
+
+为免新增 Secret，运行器在内存中对现有读取凭据做独立用途的 HMAC-SHA256 派生，
+得到续接口令；口令不进入命令参数、报告或日志，也不是新的 GitHub 写凭据。
+**轮换 `UQUANT_READ_TOKEN` 前必须迁移已有加密状态。**直接替换后旧状态不能
+用新值解密，流程会拒绝重置账户，而不是悄悄重新开始；公开日报不受读取限制。
+不应把加密副本误认为数据已经没有保密要求。
+
+## 连续性与验证
+
+这是不成交的连续观察账户，不是假定用户实盘持仓。决策前先持久化日期占用，
+已有同日结果只读取复用；未知结果先核对远端，不重复计算或强推。
+账户、完整原始决策、输入和报告在同一个 Git commit/ref 更新中发布，
+源码、配置或历史数据不相容时仍 fail-closed。
+
+当前公开CI只验证启动器。完整生产集成和公开仓库实际写入尚未验收；
+存储及保密测试的本地通过不代表生产链路已运行。
+配套实现恢复状态见私有源码仓库 PR #84，接口接通后再完成真实端到端验证。

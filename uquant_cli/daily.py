@@ -43,7 +43,6 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
     from uquant.account import load_account, save_account
     from uquant.config import DEFAULT_CONFIG, config_fingerprint
     from uquant.engine import ProductionEngine
-    from uquant.report import render_daily_report
     from uquant.types import AccountState
 
     day = metadata["target_date"]
@@ -81,7 +80,7 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
     result["comparison"] = compare(result, previous)
     put(work, "decision.json", raw)
     put(work, "result.json", result)
-    (work / "report.md").write_text(render(result, render_daily_report(decision, account)), encoding="utf-8")
+    (work / "report.md").write_text(render(result), encoding="utf-8")
     return result
 
 

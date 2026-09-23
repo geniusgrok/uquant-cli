@@ -52,8 +52,12 @@ def test_full_report_order_without_invented_qualifications():
     assert "不可比较" in text and "未提供" in text
     assert all(f"{symbol[2:]} {name}" in text for symbol, name in WATCHLIST)
     assert all(row["qualification"] is None for row in value["signals"]["stocks"])
-    report = render(value, 'selected=["sh688498", "300308"]')
+    value["signals"]["market"]["selected_symbols"] = ["sh688498", "300308"]
+    report = render(value)
     assert "688498 源杰科技" in report and "300308 中际旭创" in report
+    assert "## 市场状态与风险信号" in report
+    assert "## 全部13只标的信号总览" in report
+    assert "## 逐只标的信号与风险明细" in report
 
 
 def test_comparison_detects_weight_but_preserves_missing_fields():

@@ -1,4 +1,4 @@
-"""The public bootstrap never treats unavailable private delivery as success."""
+"""The public report path uses this repository's token without a private writer."""
 import contextlib
 import io
 import os
@@ -6,18 +6,18 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from scripts.run_private_daily import main
+from scripts.run_private_daily import main, state_key
 
 
 class BootstrapTests(unittest.TestCase):
-    def test_missing_writer_fails_without_using_read_token_for_writes(self):
+    def test_missing_job_token_fails_before_checkout(self):
         output = io.StringIO()
         with patch.dict(os.environ, {"GITHUB_REPOSITORY": "geniusgrok/uquant-cli",
                                      "UQUANT_READ_TOKEN": "CANARY_NOT_A_REAL_SECRET"}, clear=True):
             with patch("subprocess.run") as command, contextlib.redirect_stdout(output):
                 self.assertEqual(main(), 78)
                 command.assert_not_called()
-        self.assertIn("PRIVATE_DELIVERY_UNCONFIGURED", output.getvalue())
+        self.assertIn("REQUIRED_CREDENTIAL_UNAVAILABLE", output.getvalue())
         self.assertNotIn("CANARY_NOT_A_REAL_SECRET", output.getvalue())
 
     def test_unapproved_repository_never_starts(self):
@@ -26,14 +26,24 @@ class BootstrapTests(unittest.TestCase):
                 self.assertEqual(main(), 1)
                 command.assert_not_called()
 
-    def test_daily_workflow_has_one_schedule_and_no_public_payload_upload(self):
+    def test_daily_workflow_uses_own_token_and_one_schedule(self):
         workflow = Path(".github/workflows/uquant-daily-report.yml").read_text()
         self.assertEqual(workflow.count("cron:"), 1)
         self.assertIn("1 9 * * 1-5", workflow)
         self.assertIn("python scripts/run_private_daily.py", workflow)
+        self.assertIn("contents: write", workflow)
+        self.assertIn("GITHUB_TOKEN: ${{ github.token }}", workflow)
+        self.assertNotIn("UQUANT_REPORT_WRITE_TOKEN", workflow)
         self.assertNotIn("upload-artifact", workflow)
         self.assertNotIn("actions/cache", workflow)
-        self.assertNotIn("Report delivery gate", workflow)
+
+    def test_state_key_is_stable_and_not_the_read_credential(self):
+        token = "CANARY_NOT_A_REAL_SECRET"
+        key = state_key(token)
+        self.assertEqual(len(key), 64)
+        self.assertEqual(key, state_key(token))
+        self.assertNotEqual(key, state_key(token + "rotated"))
+        self.assertNotIn(token, key)
 
 
 if __name__ == "__main__":

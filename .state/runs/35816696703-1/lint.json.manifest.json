@@ -1,0 +1,16 @@
+{
+  "ciphertext": {
+    "sha256": "b040aee61a5c887a2af1d5b6334a7624028da8c266bcc7b3f2cd9fb7c155876a",
+    "size": 1248
+  },
+  "parts": [
+    {
+      "offset": 0,
+      "path": ".state/runs/35816696703-1/lint.json.gpg.part00000",
+      "sha256": "b040aee61a5c887a2af1d5b6334a7624028da8c266bcc7b3f2cd9fb7c155876a",
+      "size": 1248
+    }
+  ],
+  "relative": "runs/35816696703-1/lint.json",
+  "schema": "uquant.sealed.v1"
+}

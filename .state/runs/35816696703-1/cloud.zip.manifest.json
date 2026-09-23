@@ -1,0 +1,16 @@
+{
+  "ciphertext": {
+    "sha256": "6fb7545445d3e3b68ec3edbd8df9d48c23ebdf92b5e14d80e140263f24abb8b1",
+    "size": 4713
+  },
+  "parts": [
+    {
+      "offset": 0,
+      "path": ".state/runs/35816696703-1/cloud.zip.gpg.part00000",
+      "sha256": "6fb7545445d3e3b68ec3edbd8df9d48c23ebdf92b5e14d80e140263f24abb8b1",
+      "size": 4713
+    }
+  ],
+  "relative": "runs/35816696703-1/cloud.zip",
+  "schema": "uquant.sealed.v1"
+}

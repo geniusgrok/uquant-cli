@@ -1,0 +1,16 @@
+{
+  "ciphertext": {
+    "sha256": "3c0d3579435fea530a501ebff4b44ddee2da5ca875c55e89c54619b8f5445b7b",
+    "size": 584
+  },
+  "parts": [
+    {
+      "offset": 0,
+      "path": ".state/runs/35816696703-1/scan.log.gpg.part00000",
+      "sha256": "3c0d3579435fea530a501ebff4b44ddee2da5ca875c55e89c54619b8f5445b7b",
+      "size": 584
+    }
+  ],
+  "relative": "runs/35816696703-1/scan.log",
+  "schema": "uquant.sealed.v1"
+}

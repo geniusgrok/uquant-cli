@@ -1,0 +1,16 @@
+{
+  "ciphertext": {
+    "sha256": "665ab8537df13458a6e4c96d21958b2ce43f301c63b4c9a498a0a3fecd478d33",
+    "size": 1061
+  },
+  "parts": [
+    {
+      "offset": 0,
+      "path": ".state/runs/35816696703-1/bootstrap.log.gpg.part00000",
+      "sha256": "665ab8537df13458a6e4c96d21958b2ce43f301c63b4c9a498a0a3fecd478d33",
+      "size": 1061
+    }
+  ],
+  "relative": "runs/35816696703-1/bootstrap.log",
+  "schema": "uquant.sealed.v1"
+}

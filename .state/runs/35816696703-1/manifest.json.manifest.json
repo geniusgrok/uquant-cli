@@ -1,0 +1,16 @@
+{
+  "ciphertext": {
+    "sha256": "8ce8ad35bded8d5df6e89501f2bd8211869b41e2a069ac939242a9df435e5f1a",
+    "size": 474
+  },
+  "parts": [
+    {
+      "offset": 0,
+      "path": ".state/runs/35816696703-1/manifest.json.gpg.part00000",
+      "sha256": "8ce8ad35bded8d5df6e89501f2bd8211869b41e2a069ac939242a9df435e5f1a",
+      "size": 474
+    }
+  ],
+  "relative": "runs/35816696703-1/manifest.json",
+  "schema": "uquant.sealed.v1"
+}

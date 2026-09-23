@@ -91,7 +91,7 @@ def run_once(store: GitStore, work: Path, metadata: dict) -> dict:
         result = {**metadata, "actual_market_date": None, "signals_generated": False,
                   "finished_at": datetime.now(SHANGHAI).isoformat()}
         put(work, "status.json", result)
-        report_name = f"reports/{day}/report.md"
+        report_name = f"reports/{day}.md"
         report_path = store.root / report_name
         report_path.parent.mkdir(parents=True, exist_ok=True)
         report_path.write_text(render(result), encoding="utf-8")
@@ -116,7 +116,7 @@ def run_once(store: GitStore, work: Path, metadata: dict) -> dict:
     for original in sorted(work.rglob("*")):
         if original.is_file():
             rel = original.relative_to(work).as_posix()
-            destination = rel if rel.startswith("inputs/") else f"reports/{day}/{rel}"
+            destination = rel if rel.startswith("inputs/") else (f"reports/{day}.md" if rel == "report.md" else f"reports/{day}/{rel}")
             target = store.root / destination
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(original, target)

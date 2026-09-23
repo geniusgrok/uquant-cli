@@ -20,7 +20,7 @@ ChatGPT定时任务只获取当天已有运行，不重复触发扫描。
 
 - `latest_run.json`：最近一次执行状态、对应运行链接与记录路径；失败、休市或未收盘也会记录。
 - `latest.json`：最后一次有效决策的结构化结果入口及完整性清单。
-- `reports/YYYY-MM-DD/report.md`和`result.json`：中文完整日报与逐票比较结果。
+- `reports/YYYY-MM-DD.md`：与 trade-cli 一致的中文公开日报；`reports/YYYY-MM-DD/`保留结构化结果、决策和输入审计原件。
 - 同日的`decision.json`：生产实际输出；目标或意图不代表实际成交。
 - `state/account.json`：连续运行的非实盘观察账户，只使用系统默认模拟现金，不包含用户实盘输入。
 - `inputs/`：实际计算行情、逐票原始展示报价、日期与质量审计；历史版本可按Git提交恢复。

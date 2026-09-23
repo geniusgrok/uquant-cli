@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from uquant_cli import daily
-from uquant_cli.market import SHANGHAI, SYMBOLS, session_context
+from uquant_cli.market import SHANGHAI, SYMBOLS, WATCHLIST, session_context
 from uquant_cli.report import compare, render, signals
 from uquant_cli.store import GitStore, REMOTE, identity, path_in, put, verify
 
@@ -50,7 +50,10 @@ def test_full_report_order_without_invented_qualifications():
     positions = [text.index(symbol[2:]) for symbol in SYMBOLS]
     assert positions == sorted(positions)
     assert "不可比较" in text and "未提供" in text
+    assert all(f"{symbol[2:]} {name}" in text for symbol, name in WATCHLIST)
     assert all(row["qualification"] is None for row in value["signals"]["stocks"])
+    report = render(value, 'selected=["sh688498", "300308"]')
+    assert "688498 源杰科技" in report and "300308 中际旭创" in report
 
 
 def test_comparison_detects_weight_but_preserves_missing_fields():
@@ -120,7 +123,7 @@ def test_preclose_publishes_status_markdown_without_deciding(tmp_path):
         outcome = daily.run_once(st, work, metadata)
         refresh.assert_not_called()
         compute.assert_not_called()
-    report = "reports/2026-09-23/report.md"
+    report = "reports/2026-09-23.md"
     content = (st.root / report).read_bytes()
     assert b"MARKET_NOT_CLOSED" in content
     assert b"本次未产生新的生产信号" in content

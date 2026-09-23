@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from typing import Any
 
 from .market import WATCHLIST
@@ -84,27 +85,46 @@ def compare(current: dict, previous: dict | None) -> dict:
 
 def display(value: Any) -> str:
     text = "未提供" if value is None else json.dumps(value, ensure_ascii=False, sort_keys=True)
+    for symbol, name in WATCHLIST:
+        code = symbol[2:]
+        pattern = rf"(?<![A-Za-z0-9])(?:sh|sz)?{code}(?!\d)(?!\s*{re.escape(name)})"
+        text = re.sub(pattern, f"{code} {name}", text)
     return text.replace("|", "\\|").replace("\n", " ").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def render(result: dict, production_report: str = "") -> str:
-    lines = [f"# Uquant 13标的盘后日报 — {result['target_date']}", "",
-             f"状态：{result['status']}；实际行情日：{result.get('actual_market_date') or '未取得'}", 
-             f"前一交易日：{result.get('previous_session') or '未确认'}",
-             f"生产源码：`{result.get('source_sha', '未取得')}`；[Actions Run]({result['run_url']})", "",
-             f"运行启动：{result['started_at']}；本次处理完成：{result.get('finished_at', '未完成')}"]
+    status_names = {
+        "COMPLETE": "成功", "PARTIAL": "部分结果", "REUSED": "已复用",
+        "MARKET_CLOSED": "休市", "MARKET_NOT_CLOSED": "尚未收盘",
+        "FAILED": "失败", "BOOTSTRAP_OR_PROCESS_FAILED": "启动或运行失败",
+    }
+    status = result["status"]
+    target_date = result["target_date"]
+    lines = [
+        "# Uquant 13只标的盘后日报",
+        "",
+        f"目标交易日：{target_date}；行情截止日：{result.get('actual_market_date') or '未取得'}。",
+        f"策略结果状态：**{status_names.get(status, status)}（{status}）**。",
+        f"实际生产源码版本：{result.get('source_sha', '未取得')}。",
+        f"[查看本次计算的运行记录]({result['run_url']})。",
+        "执行口径：连续、不执行的观察账户；不代表真实账户持仓或成交。",
+        f"运行时间：{result.get('started_at', '未取得')} → {result.get('finished_at', '未完成')}。",
+        "", "## 重点变化", "",
+    ]
+    comparison_names = {"COMPARABLE": "可比较", "INCOMPARABLE": "不可比较"}
     if "signals" not in result:
-        lines += ["", "本次未产生新的生产信号。原因：" + result["status"],
-                  "昨日 → 今日：不可比较；不得将旧数据或盘中数据标为今日收盘。"]
+        lines += [f"比较日期：{result.get('previous_session') or '未确认'} → {target_date}；不可比较。",
+                  "", "## 结果限制", "",
+                  "本次未产生新的生产信号。不得将旧结果或盘中行情标记为今日收盘。"]
         if result.get("failure"):
             lines.append("失败阶段/类型：" + display(result["failure"]))
         return "\n".join(lines) + "\n"
-    lines += ["", "口径：连续、不执行的观察账户；没有使用真实账户，也没有模拟成交。",
-              f"观察起点：{result['observer_start']}；初始模拟现金：{result['initial_cash']}元。",
-              "## 重点变化", ""]
+
     comp = result["comparison"]
+    lines.append(f"比较日期：{result.get('previous_session') or '未确认'} → {target_date}；"
+                 f"{comparison_names.get(comp['status'], comp['status'])}。")
     if comp["status"] != "COMPARABLE":
-        lines.append("**不可比较：" + comp["reason"] + "**")
+        lines.append("不可比较：" + comp["reason"])
     elif not comp["changes"]:
         lines.append("已核验的可比较字段无变化；不涵盖缺失字段。")
     else:
@@ -113,21 +133,28 @@ def render(result: dict, production_report: str = "") -> str:
     if comp.get("unavailable"):
         lines.append("不可比较的字段：" + "、".join(comp["unavailable"]))
     if comp.get("source_changed"):
-        lines.append("源码提交已变化；当前经济代码和配置指纹相同，原始源码身份分别保留。")
-    lines += ["", "## 市场与风险", "", "字段 | 实际生产输出", "--- | ---"]
-    lines += [key + " | " + display(value) for key, value in result["signals"]["market"].items()]
-    lines += ["", "## 全部13只股票", "",
-              "代码及名称 | 收盘价 / 涨跌幅(%) | 机会/趋势证据 | 资格 | 风险限制 | 行动/订单意图 | 目标仓位",
-              "--- | --- | --- | --- | --- | --- | ---"]
+        lines.append("生产源码版本已变化；不能将全部信号变化归因于行情。")
+
+    lines += ["", "## 市场状态与市场风险", "", "| 项目 | 生产输出 |", "|---|---|",]
+    lines += [f"| {display(key)} | {display(value)} |"
+              for key, value in result["signals"]["market"].items()]
+    lines += ["", "## 全部13只标的", "",
+              "| 代码及名称 | 收盘价 / 涨跌幅（%） | 机会与趋势证据 | 资格 | 风险限制 | 行动与订单意图 | 目标仓位 |",
+              "|---|---|---|---|---|---|---|"]
     for row in result["signals"]["stocks"]:
-        quote = row["quote"] or {}
-        orders = [{key: o.get(key) for key in ("side", "target_weight", "signal_date")} for o in row["orders"]]
-        lines.append(" | ".join([row["symbol"][2:] + " " + row["name"],
+        quote = row.get("quote") or {}
+        orders = [{key: order.get(key) for key in ("side", "target_weight", "signal_date")}
+                  for order in row["orders"]]
+        lines.append("| " + " | ".join([
+            display(row["symbol"][2:] + " " + row["name"]),
             display(quote.get("close")) + " / " + display(quote.get("change_pct")),
-            display(row["trend_evidence"]), display(row["qualification"]), display(row["risk_limits"]),
-            display(orders) if orders else "未生成订单意图（不等于持有或允许买入）",
-            display((row["target"] or {}).get("weight"))]))
-    lines += ["", "目标仓位以0—1表示。保留意图的signal_date，区分历史未执行意图与今日信号。",
-              "盘后决策仅供下一可交易日人工核对，不代表成交。", "",
-              "## 生产系统完整日报", "", production_report]
+            display(row["trend_evidence"]), display(row["qualification"]),
+            display(row["risk_limits"]),
+            display(orders) if orders else "未生成订单意图（不代表持有或允许买入）",
+            display((row.get("target") or {}).get("weight")),
+        ]) + " |")
+    lines += ["", "目标仓位以0—1表示。历史未执行意图保留原信号日期，不等于今日信号。",
+              "盘后决策仅供下一可交易日人工核对，不代表成交。"]
+    if production_report.strip():
+        lines += ["", "## 生产策略报告", "", display(production_report)]
     return "\n".join(lines) + "\n"

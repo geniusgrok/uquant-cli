@@ -33,6 +33,14 @@ def main() -> int:
                   for key in ("tests", "failures", "errors", "skipped")}
         (output / "runtime-tests.json").write_text(json.dumps(totals, indent=2) + "\n")
         print("RUNTIME_TESTS=" + json.dumps(totals))
+        failures = []
+        for case in suites.iter("testcase"):
+            for issue in case:
+                if issue.tag in {"failure", "error"}:
+                    failures.append({"test": case.get("classname", "") + "." + case.get("name", ""),
+                                     "kind": issue.tag})
+        if failures:
+            print("RUNTIME_FAILURES=" + json.dumps(failures))
         status = 0 if code == 0 and tests == 0 and totals["skipped"] == 0 else 1
     except Exception as exc:
         status = 1

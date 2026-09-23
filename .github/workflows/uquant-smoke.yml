@@ -1,0 +1,142 @@
+name: Private uquant smoke run
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/uquant-smoke.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uquant-private-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: github.repository == 'geniusgrok/uquant-cli' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      UV_NO_CACHE: '1'
+      UV_PYTHON_DOWNLOADS: never
+    steps:
+      - name: Require private-repository secret
+        env:
+          READ_TOKEN: ${{ secrets.UQUANT_READ_TOKEN }}
+        run: |
+          if [ -z "$READ_TOKEN" ]; then
+            echo '::error::Configure UQUANT_READ_TOKEN as a repository Actions secret, not an Actions variable.'
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/uquant-smoke-private"
+          chmod 700 "$RUNNER_TEMP/uquant-smoke-private"
+
+      - name: Set up the project Python version
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12.13'
+
+      - name: Read private uquant main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: ychenracing/uquant
+          ref: main
+          token: ${{ secrets.UQUANT_READ_TOKEN }}
+          path: private-uquant
+          persist-credentials: false
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Install locked production dependencies
+        working-directory: private-uquant
+        run: |
+          set -euo pipefail
+          umask 077
+          if ! python -m pip install --disable-pip-version-check 'uv==0.11.33' > "$RUNNER_TEMP/uquant-smoke-private/bootstrap.log" 2>&1; then
+            echo '::error::Tool installation failed. Raw output is withheld from public logs.'
+            exit 1
+          fi
+          if ! uv sync --frozen --python "$(command -v python)" > "$RUNNER_TEMP/uquant-smoke-private/install.log" 2>&1; then
+            echo '::error::Locked dependency installation failed. Raw output is withheld from public logs.'
+            exit 1
+          fi
+          echo 'Locked production environment installed.'
+
+      - name: Run production CLI with an isolated historical account
+        working-directory: private-uquant
+        shell: python
+        run: |
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import subprocess
+          import sys
+
+          os.umask(0o077)
+          work = Path(os.environ['RUNNER_TEMP']) / 'uquant-smoke-private'
+          source_sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          if re.fullmatch(r'[0-9a-f]{40}', source_sha) is None:
+              sys.exit('Invalid source identity.')
+          if sys.version_info[:3] != (3, 12, 13):
+              sys.exit('Unexpected Python version.')
+          print(f'Private source commit: {source_sha}')
+          summary = Path(os.environ['GITHUB_STEP_SUMMARY'])
+          with summary.open('a') as out:
+              out.write('# Private uquant smoke run\n\n')
+              out.write(f'Source commit: `{source_sha}`\n\n')
+              out.write('Historical integration check only; no live account or current-market signal.\n\n')
+
+          symbols = ['sz300308', 'sz300502', 'sz300394', 'sh688008', 'sh603986']
+          account = work / 'account.json'
+          report = work / 'daily.md'
+          html = work / 'daily.html'
+          commands = [
+              ('CLI startup', ['uquant', '--help']),
+              ('Frozen data integrity', ['python', '-m', 'uquant.validation', 'data-manifest', '--data-dir', 'data/frozen']),
+              ('Isolated account initialization', [
+                  'uquant', 'account-init', '--data-dir', 'data/frozen', '--symbols', *symbols,
+                  '--date', '2026-07-20', '--cash', '2000000', '--output', str(account)]),
+              ('Historical daily decision', [
+                  'uquant', 'daily', '--data-dir', 'data/frozen', '--symbols', *symbols,
+                  '--date', '2026-07-21', '--account', str(account),
+                  '--output', str(report), '--html-output', str(html)]),
+          ]
+          for index, (label, command) in enumerate(commands, 1):
+              with (work / f'phase-{index}.log').open('wb') as log:
+                  try:
+                      result = subprocess.run(
+                          ['uv', 'run', '--no-sync', *command], stdout=log,
+                          stderr=subprocess.STDOUT, timeout=180, check=False)
+                  except subprocess.TimeoutExpired:
+                      print(f'::error::{label} timed out; private output withheld.')
+                      sys.exit(1)
+              if result.returncode:
+                  print(f'::error::{label} failed (exit {result.returncode}); private output withheld.')
+                  sys.exit(result.returncode if result.returncode > 0 else 1)
+              print(f'PASS: {label}')
+              with summary.open('a') as out:
+                  out.write(f'- PASS: {label}\n')
+
+          if not isinstance(json.loads(account.read_text()), dict):
+              sys.exit('Account output validation failed.')
+          if '2026-07-21' not in report.read_text():
+              sys.exit('Daily report date validation failed.')
+          if '<html' not in html.read_text().lower():
+              sys.exit('HTML report validation failed.')
+          for output in (account, report, html):
+              if not output.is_file() or output.stat().st_size == 0:
+                  sys.exit('Expected output is missing or empty.')
+          print('PASS: account and both report files validated; contents remain private.')
+          with summary.open('a') as out:
+              out.write('- PASS: account JSON, dated Markdown report and HTML report validated\n\n')
+              out.write('No source, account, reports, raw command logs, artifacts or caches are published.\n')
+              out.write('The private repository is read only. Temporary files are removed after the run.\n')
+
+      - name: Remove private working files
+        if: always()
+        run: |
+          rm -rf -- "$RUNNER_TEMP/uquant-smoke-private" "$GITHUB_WORKSPACE/private-uquant"

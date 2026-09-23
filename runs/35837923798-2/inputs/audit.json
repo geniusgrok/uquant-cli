@@ -1,0 +1,143 @@
+{
+  "coverage": {
+    "sh601869": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1986
+    },
+    "sh603986": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 2247
+    },
+    "sh688008": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1743
+    },
+    "sh688012": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1734
+    },
+    "sh688019": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1743
+    },
+    "sh688037": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1641
+    },
+    "sh688041": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 989
+    },
+    "sh688072": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1067
+    },
+    "sh688082": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1178
+    },
+    "sh688110": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1159
+    },
+    "sh688120": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1046
+    },
+    "sh688146": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 829
+    },
+    "sh688200": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1605
+    },
+    "sh688233": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1602
+    },
+    "sh688256": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1502
+    },
+    "sh688268": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1636
+    },
+    "sh688300": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1665
+    },
+    "sh688361": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 815
+    },
+    "sh688498": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 912
+    },
+    "sz002384": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 3788
+    },
+    "sz300054": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 3901
+    }
+  },
+  "failures": {
+    "sh000300": "ConnectionError",
+    "sh000682": "ConnectionError",
+    "sh600487": "DataContractError",
+    "sh603688": "DataContractError",
+    "sh603986:raw": "ConnectionError",
+    "sh688072:raw": "ConnectionError",
+    "sh688120:raw": "ConnectionError",
+    "sh688256:raw": "ConnectionError",
+    "sh688300:raw": "ConnectionError",
+    "sh688347": "ConnectionError",
+    "sh688361:raw": "ConnectionError",
+    "sh688498:raw": "ConnectionError",
+    "sh688766": "ConnectionError",
+    "sz000636": "DataContractError",
+    "sz002281": "ConnectionError",
+    "sz002371": "ConnectionError",
+    "sz002384:raw": "ConnectionError",
+    "sz002409": "ConnectionError",
+    "sz002409:raw": "ConnectionError",
+    "sz300054:raw": "ConnectionError",
+    "sz300223": "ConnectionError",
+    "sz300308": "ConnectionError",
+    "sz300308:raw": "ConnectionError",
+    "sz300394": "ConnectionError",
+    "sz300394:raw": "ConnectionError",
+    "sz300502": "ConnectionError",
+    "sz300502:raw": "ConnectionError",
+    "sz300604": "ConnectionError",
+    "sz300666": "ConnectionError"
+  },
+  "fetched_at": "2026-09-23T16:46:02.654892+08:00",
+  "provider": "AkShare/Eastmoney",
+  "quotes": {}
+}

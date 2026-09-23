@@ -1,0 +1,38 @@
+{
+  "runs/35840450161-1/calendar.json": {
+    "bytes": 7763,
+    "sha256": "af4a7c06e40dab9103cadd1bf66123b9536cb32638147a96e780065fb7a3b379"
+  },
+  "runs/35840450161-1/events.json": {
+    "bytes": 962,
+    "sha256": "a34cb16cfaa7e17ac0f85600a97d10a2c14e225c8d0a5d2d054ce317397f9c69"
+  },
+  "runs/35840450161-1/inputs/audit.json": {
+    "bytes": 4550,
+    "sha256": "5cfc3dccd1de515f63c6f1c2e5aec2b8be08372bd97b83359a7c20f3f95ccee7"
+  },
+  "runs/35840450161-1/inputs/sh601869.csv": {
+    "bytes": 108778,
+    "sha256": "4e6b3e812087b9d1482d22d7f45cbd060883572292e9a06472a5a81dd7943891"
+  },
+  "runs/35840450161-1/inputs/sh603986.csv": {
+    "bytes": 130547,
+    "sha256": "d1ee7f5f896483c203915268280fcd82fde48f2cb57b9185125821ecbfddfbb6"
+  },
+  "runs/35840450161-1/inputs/sh688008.csv": {
+    "bytes": 98193,
+    "sha256": "f2d7923f1b2ff735b774b925210e569ba39e73e99987da722527694fee7a5407"
+  },
+  "runs/35840450161-1/inputs/sz300604.csv": {
+    "bytes": 123873,
+    "sha256": "864ced76468643fb062ce617ad8eff32ab2a057cea9c050f695c812072bab898"
+  },
+  "runs/35840450161-1/report.md": {
+    "bytes": 1046,
+    "sha256": "19dfdc38164477f4d9765098e6898748a0dc7302c9bcb8d0c67e4f10fc64899b"
+  },
+  "runs/35840450161-1/status.json": {
+    "bytes": 800,
+    "sha256": "44289b25cbedb44e4945059a98842f72dd16be519132333e287a14cad627b4c1"
+  }
+}

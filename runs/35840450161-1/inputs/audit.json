@@ -1,0 +1,213 @@
+{
+  "coverage": {
+    "sh601869": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1986
+    },
+    "sh603986": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 2247
+    },
+    "sh688008": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 1743
+    },
+    "sz300604": {
+      "adjustment": "qfq",
+      "date": "2026-09-23",
+      "rows": 2285
+    }
+  },
+  "failures": {
+    "sh000300": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh000682": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh600487": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh603688": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh603986:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688012": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688019": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688037": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688041": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688072": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688072:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688082": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688110": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688120": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688120:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688146": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688200": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688233": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688256": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688256:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688268": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688300": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688300:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688347": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688361": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688361:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688498": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688498:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sh688766": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz000636": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz002281": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz002371": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz002384": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz002384:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz002409": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz002409:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz300054": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz300054:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz300223": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz300308": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz300308:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz300394": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz300394:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz300502": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz300502:raw": {
+      "category": "network",
+      "type": "ConnectionError"
+    },
+    "sz300666": {
+      "category": "network",
+      "type": "ConnectionError"
+    }
+  },
+  "fetched_at": "2026-09-23T17:06:22.560011+08:00",
+  "provider": "AkShare/Eastmoney",
+  "quotes": {}
+}

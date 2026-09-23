@@ -1,0 +1,42 @@
+name: Private uquant daily report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '1 9 * * 1-5'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uquant-daily-report
+  cancel-in-progress: false
+
+jobs:
+  daily-report:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Require private source token
+        env:
+          READ_TOKEN: ${{ secrets.UQUANT_READ_TOKEN }}
+        run: test -n "$READ_TOKEN"
+
+      - name: Checkout private uquant source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: ychenracing/uquant
+          ref: main
+          token: ${{ secrets.UQUANT_READ_TOKEN }}
+          path: private-uquant
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Record source identity
+        working-directory: private-uquant
+        run: git rev-parse HEAD
+
+      - name: Report delivery gate
+        run: |
+          echo 'Private checkout verified.'
+          echo 'A private report destination with write permission is required before publishing full daily reports.'

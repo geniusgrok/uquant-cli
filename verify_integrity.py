@@ -44,7 +44,6 @@ def main() -> int:
                                       issue.get("type", "unknown"))
                     failures.append({"test": case.get("classname", "") + "." + case.get("name", ""),
                                      "kind": issue.tag, "type": error_type})
-                                     "kind": issue.tag, "type": issue.get("type", "unknown")})
         if failures:
             print("RUNTIME_FAILURES=" + json.dumps(failures))
         status = 0 if code == 0 and tests == 0 and totals["skipped"] == 0 else 1

@@ -37,7 +37,13 @@ def main() -> int:
         for case in suites.iter("testcase"):
             for issue in case:
                 if issue.tag in {"failure", "error"}:
+                    details = issue.get("message", "") + "\n" + (issue.text or "")
+                    safe_types = ("ModuleNotFoundError", "ImportError", "SyntaxError", "FileNotFoundError",
+                                  "AssertionError", "RuntimeError", "TypeError", "ValueError", "NameError", "KeyError")
+                    error_type = next((name for name in safe_types if name in details),
+                                      issue.get("type", "unknown"))
                     failures.append({"test": case.get("classname", "") + "." + case.get("name", ""),
+                                     "kind": issue.tag, "type": error_type})
                                      "kind": issue.tag, "type": issue.get("type", "unknown")})
         if failures:
             print("RUNTIME_FAILURES=" + json.dumps(failures))

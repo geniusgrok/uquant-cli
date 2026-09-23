@@ -63,9 +63,9 @@ def check(source: Path, root: Path) -> dict:
             outcome = daily.run_once(store, work, metadata)
             assert outcome["status"] in {"COMPLETE", "PARTIAL"}
             assert tuple(row["symbol"] for row in outcome["signals"]["stocks"]) == SYMBOLS
-            report = (store.root / f"reports/{day}/report.md").read_text(encoding="utf-8")
+            report = (store.root / f"reports/{day}.md").read_text(encoding="utf-8")
             assert all(f"{symbol[2:]} {name}" in report for symbol, name in WATCHLIST)
-            assert store.git("show", f"FETCH_HEAD:reports/{day}/report.md").stdout.decode() == report
+            assert store.git("show", f"FETCH_HEAD:reports/{day}.md").stdout.decode() == report
             assert daily.prior(store.root, metadata)["target_date"] == day
             verify(store.root, read(store.root, "latest.json")["files"])
             outcomes.append({"day": day, "status": outcome["status"],

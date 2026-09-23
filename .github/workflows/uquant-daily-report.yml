@@ -2,7 +2,7 @@ name: Uquant daily report
 on:
   workflow_dispatch:
   schedule:
-    - cron: '1 9 * * 1-5'
+    - cron: '31 8 * * 1-5'
   push:
     branches: [main]
     paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', '.github/workflows/uquant-daily-report.yml']

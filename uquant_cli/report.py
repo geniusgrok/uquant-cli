@@ -76,7 +76,6 @@ def compare(current: dict, previous: dict | None) -> dict:
             record(row["name"], field, former.get(field), row.get(field))
         record(row["name"], "target_weight", (former["target"] or {}).get("weight"),
                (row["target"] or {}).get("weight"))
-        # IDs and dates naturally change; compare the actual action and weight instead.
         action = lambda item: sorted((str(o["side"]), o.get("target_weight")) for o in item["orders"])
         record(row["name"], "action", action(former), action(row))
     return {"status": "COMPARABLE", "changes": changes, "unavailable": unavailable,
@@ -116,7 +115,6 @@ def render(result: dict) -> str:
         f"实际生产源码版本：{result.get('source_sha', '未取得')}。",
         f"[查看本次计算的运行记录]({result['run_url']})。",
         "执行口径：连续、不执行的观察账户，不代表真实账户持仓或成交。",
-        f"观察起点：{result.get('observer_start', '未取得')}；初始模拟现金：{result.get('initial_cash', '未提供')}元。",
         f"运行时间：{result.get('started_at', '未取得')} → {result.get('finished_at', '未完成')}。",
         "", "## 重点变化", "",
     ]
@@ -125,12 +123,13 @@ def render(result: dict) -> str:
     lines.append(f"比较日期：{previous} → {target_date}。")
     if "signals" not in result:
         lines += ["不可比较：本次未产生完整生产信号。",
-                  "", "## 结果限制", "",
+                  "本次未产生新的生产信号。", "", "## 结果限制", "",
                   "本次没有生成可展示的市场和逐只标的信号。未收盘、休市或行情校验失败时，不使用旧信号代替当日结果。"]
         if result.get("failure"):
             lines.append("失败阶段/类型：" + display(result["failure"]))
         return "\n".join(lines) + "\n"
 
+    lines.insert(7, f"观察起点：{result.get('observer_start', '未取得')}；初始模拟现金：{result.get('initial_cash', '未提供')}元。")
     if comparison.get("status") != "COMPARABLE":
         lines.append("不可比较：" + display(comparison.get("reason")))
     elif not comparison.get("changes"):

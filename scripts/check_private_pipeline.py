@@ -25,7 +25,7 @@ def main() -> int:
         if (output / "integration.json").exists():
             print((output / "integration.json").read_text())
         # Public tests reference no private source lines; pytest output stays local.
-        tests = call([str(root / "venv/bin/python"), "-m", "pytest", "tests/test_runtime.py", "-q",
+        tests = call([str(root / "venv/bin/python"), "-m", "pytest", "tests/test_runtime.py", "tests/test_publication.py", "-q",
                       "--junitxml=" + str(root / "junit.xml")], CLI_ROOT, env, events, "RUNTIME_TESTS")
         import xml.etree.ElementTree as ET
         suites = ET.parse(root / "junit.xml").getroot()
@@ -35,6 +35,7 @@ def main() -> int:
         print("RUNTIME_TESTS=" + json.dumps(totals))
         status = 0 if code == 0 and tests == 0 and totals["skipped"] == 0 else 1
     except Exception as exc:
+        status = 1
         events.append({"stage": "VALIDATION", "error_type": type(exc).__name__})
     (output / "events.json").write_text(json.dumps(events, indent=2) + "\n")
     return status

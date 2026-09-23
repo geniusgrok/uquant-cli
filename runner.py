@@ -1,3 +1,14 @@
+"""编排一次生产观察运行，并把运行原件保存在本仓库。"""
+from __future__ import annotations
+
+import json
+import os
+from pathlib import Path
+
+from bootstrap import CLI_ROOT, call, prepare
+from preflight import validate_environment
+
+
 def main() -> int:
     failure = validate_environment(os.environ)
     if failure:
@@ -24,7 +35,7 @@ def main() -> int:
         (root / "events.json").write_text(json.dumps({"source_sha": env.get("UQUANT_SOURCE_SHA"),
             "runner_sha": os.environ.get("GITHUB_SHA"), "events": events}, indent=2) + "\n")
         try:
-            result = call(["python", "-m", "cli_runtime.publish", "--root", str(root)],
+            result = call(["python", "-m", "uquant_cli.publish", "--root", str(root)],
                           CLI_ROOT, env, [], "PUBLIC_PRESERVATION")
             if result:
                 status = 1

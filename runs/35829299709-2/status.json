@@ -1,6 +1,4 @@
 {
-  "events_path": "runs/35829299709-2/events.json",
-  "record_path": "runs/35829299709-2/status.json",
   "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/35829299709",
   "status": "BOOTSTRAP_OR_PROCESS_FAILED"
 }

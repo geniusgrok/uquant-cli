@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import os
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -18,8 +19,23 @@ def check(source: Path, root: Path) -> dict:
     from uquant.data import DataStore
     from uquant.engine import INDEX_SYMBOLS, REFERENCE_UNIVERSE
 
-    data = DataStore(source / "data/frozen")
+    # The upstream frozen research pool omits 002384. Keep all thirteen test
+    # subjects: add a disclosed synthetic fixture only in this isolated test.
+    # Never fetch or overwrite a production input through this fixture path.
+    fixture = root / "fixture"
+    shutil.copytree(source / "data/frozen", fixture)
     members = set(SYMBOLS) | set(REFERENCE_UNIVERSE) | set(INDEX_SYMBOLS)
+    missing = {symbol for symbol in members if not (fixture / (symbol + ".csv")).exists()
+               and not (fixture / (symbol[2:] + ".csv")).exists()}
+    if missing - {"sz002384"}:
+        raise ValueError("unexpected frozen fixture coverage gap")
+    if missing:
+        frame = DataStore(fixture).load("sh000300")
+        frame.loc[:, ["open", "high", "low", "close"]] = 20.0
+        frame.loc[:, "volume"] = 1_000_000.0
+        frame.loc[:, "amount"] = 20_000_000.0
+        frame.reset_index().to_csv(fixture / "sz002384.csv", index=False)
+    data = DataStore(fixture)
     days = [str(value.date()) for value in data.common_sessions(members, "2026-01-01", "2026-08-05")[-3:]]
     remote = root / "remote.git"
     subprocess.run(["git", "init", "--bare", "--quiet", str(remote)], check=True)
@@ -57,7 +73,8 @@ def check(source: Path, root: Path) -> dict:
     loaded = GitStore(root / "readback", str(remote))
     verify(loaded.root, read(loaded.root, "latest.json")["files"])
     assert (loaded.root / "state/account.json").read_bytes() == (store.root / "state/account.json").read_bytes()
-    return {"status": "PASS", "fixture_only": True, "production_decisions": 2,
+    return {"status": "PASS", "fixture_only": True, "synthetic_fixture_symbols": sorted(missing),
+            "production_decisions": 2,
             "duplicate_decisions": 0, "sessions": outcomes,
             "account_identity": identity(loaded.root / "state/account.json"),
             "source_sha": os.environ["UQUANT_SOURCE_SHA"], "runner_sha": os.environ["GITHUB_SHA"]}

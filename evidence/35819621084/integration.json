@@ -1,0 +1,33 @@
+{
+  "fixture_only": true,
+  "frames": [
+    {
+      "function": "main",
+      "line": 74,
+      "module": "integration.py"
+    },
+    {
+      "function": "check",
+      "line": 23,
+      "module": "integration.py"
+    },
+    {
+      "function": "common_sessions",
+      "line": 143,
+      "module": "data.py"
+    },
+    {
+      "function": "load",
+      "line": 98,
+      "module": "data.py"
+    },
+    {
+      "function": "path_for",
+      "line": 91,
+      "module": "data.py"
+    }
+  ],
+  "source_sha": "57c63bc3840d74876a37f55ea4b712b6fd96ccd4",
+  "status": "FAIL",
+  "type": "DataContractError"
+}

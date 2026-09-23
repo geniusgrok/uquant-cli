@@ -1,7 +1,9 @@
-"""Public bootstrap only. Private source, execution output and state never go to public artifacts."""
+"""Publish authorized daily reports to this repository; seal internal state and logs."""
 from __future__ import annotations
 
 import base64
+import hashlib
+import hmac
 import json
 import os
 import subprocess
@@ -14,15 +16,20 @@ def run(command: list[str], *, cwd: Path, env: dict[str, str], log) -> int:
                           timeout=840, check=False).returncode
 
 
+def state_key(source_token: str) -> str:
+    """Domain-separated local encryption key; never a GitHub write credential."""
+    return hmac.new(source_token.encode(), b"uquant-cli:state:v1", hashlib.sha256).hexdigest()
+
+
 def main() -> int:
     if os.environ.get("GITHUB_REPOSITORY") != "geniusgrok/uquant-cli":
         print("UQUANT_SCAN_STATUS=UNAPPROVED_RUNNER")
         return 1
     source_token = os.environ.get("UQUANT_READ_TOKEN", "")
-    writer_token = os.environ.get("UQUANT_REPORT_WRITE_TOKEN", "")
+    writer_token = os.environ.get("GITHUB_TOKEN", "")
     if not source_token or not writer_token:
-        print("UQUANT_SCAN_STATUS=PRIVATE_DELIVERY_UNCONFIGURED")
-        print("No production scan was started. The read-only source token is not a report writer.")
+        print("UQUANT_SCAN_STATUS=REQUIRED_CREDENTIAL_UNAVAILABLE")
+        print("Source checkout needs UQUANT_READ_TOKEN; public publication uses the job GITHUB_TOKEN.")
         return 78
     identity = os.environ["GITHUB_RUN_ID"] + "-" + os.environ.get("GITHUB_RUN_ATTEMPT", "1")
     if not all(part.isdigit() for part in identity.split("-")):
@@ -34,6 +41,7 @@ def main() -> int:
     source = root / "source"
     env = os.environ.copy()
     env.pop("UQUANT_READ_TOKEN", None)
+    env["UQUANT_STATE_PASSPHRASE"] = state_key(source_token)
     env.update({"UV_CACHE_DIR": str(root / "uv-cache"), "UV_PYTHON_DOWNLOADS": "never"})
     guard = ["python", "-m", "tools.cloud_guard", "--root", str(root / "journal")]
     auth = base64.b64encode(("x-access-token:" + source_token).encode()).decode()
@@ -70,7 +78,7 @@ def main() -> int:
             except Exception:
                 saved = False
         if not saved:
-            print("UQUANT_SCAN_STATUS=PRIVATE_LOG_PRESERVATION_FAILED")
+            print("UQUANT_SCAN_STATUS=ENCRYPTED_ORIGINAL_PRESERVATION_FAILED")
             status = 1
     public_status = root / "operation/public_status.json"
     if status == 0 and public_status.exists():
@@ -83,7 +91,7 @@ def main() -> int:
     elif status == 0:
         status = 1
     if status:
-        print("UQUANT_SCAN_STATUS=FAILED_OR_BLOCKED; inspect private records; do not rerun blindly")
+        print("UQUANT_SCAN_STATUS=FAILED_OR_BLOCKED; inspect report status and sealed recovery records; do not rerun blindly")
     return status
 
 

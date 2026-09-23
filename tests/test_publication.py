@@ -2,11 +2,11 @@ from tests.test_runtime import store
 
 import pytest
 
-from cli_runtime.store import put
+from uquant_cli.store import put
 
 
 def test_recovery_preserves_only_approved_outputs(tmp_path, monkeypatch):
-    from cli_runtime import publish
+    from uquant_cli import publish
     st, _ = store(tmp_path)
     root = tmp_path / "run"
     candidate = root / "operation/publishable"

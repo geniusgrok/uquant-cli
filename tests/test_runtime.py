@@ -303,6 +303,39 @@ def test_source_failover_prefers_last_healthy_source_and_all_fail_closed():
                               lambda value, name: (value, False), [])
 
 
+def test_adjusted_rebase_keeps_verified_prefix_and_rejects_other_revisions(tmp_path):
+    import pandas as pd
+
+    prior, today = tmp_path / "prior", tmp_path / "today"
+    prior.mkdir()
+    today.mkdir()
+    symbol = "sh688498"
+    old = pd.DataFrame({"date": ["2026-09-22", "2026-09-23"],
+                        "open": [100.0, 110.0], "high": [101.0, 111.0],
+                        "low": [99.0, 109.0], "close": [100.0, 110.0],
+                        "volume": [1200.0, 1300.0], "amount": [120000.0, 143000.0]})
+    fresh = pd.concat([old.assign(**{p: old[p] / 1.01 for p in ("open", "high", "low", "close")}),
+                       pd.DataFrame({"date": ["2026-09-24"], "open": [99.0], "high": [100.0],
+                                     "low": [98.0], "close": [99.0], "volume": [1400.0],
+                                     "amount": [138600.0]})], ignore_index=True)
+    old.to_csv(prior / (symbol + ".csv"), index=False)
+    fresh.to_csv(today / (symbol + ".csv"), index=False)
+    raw = old.tail(1)
+    raw.to_csv(prior / (symbol + ".raw.csv"), index=False)
+    pd.concat([raw, fresh.tail(1)]).to_csv(today / (symbol + ".raw.csv"), index=False)
+    factor = market._anchor_adjusted_history(today, prior, symbol, "2026-09-23", "2026-09-24")
+    anchored = pd.read_csv(today / (symbol + ".csv"))
+    assert factor == pytest.approx(1.01)
+    pd.testing.assert_frame_equal(anchored.iloc[:-1], old, check_dtype=False)
+    assert anchored.iloc[-1]["close"] == pytest.approx(99.99)
+
+    changed = fresh.copy()
+    changed.loc[0, "volume"] += 1
+    changed.to_csv(today / (symbol + ".csv"), index=False)
+    with pytest.raises(ValueError, match="nonprice"):
+        market._anchor_adjusted_history(today, prior, symbol, "2026-09-23", "2026-09-24")
+
+
 def test_provider_deadline_interrupts_stalled_call():
     import time
     import signal

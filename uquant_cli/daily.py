@@ -125,7 +125,8 @@ def run_once(store: GitStore, work: Path, metadata: dict) -> dict:
         put(work, "status.json", result)
         return result
     saved_sources = read(store.root, "inputs/audit.json") if previous is not None else None
-    refresh(work / "inputs", day, metadata["previous_session"], prior_audit=saved_sources)
+    refresh(work / "inputs", day, metadata["previous_session"], prior_audit=saved_sources,
+            prior_root=store.root / "inputs" if previous is not None else None)
     claim_path = f"claims/{day}.json"
     claim = {**metadata, "status": "STARTED"}
     if (store.root / claim_path).exists():
@@ -179,8 +180,12 @@ def main() -> int:
         return 0
     except Exception as exc:
         # Do not publish traceback source lines, arbitrary exception text, or process environments.
+        known_failures = {"historical data prefix differs from account state": "DATA_PREFIX_CHANGED",
+                          "production code hash differs from account state": "CODE_IDENTITY_CHANGED",
+                          "unreconciled production claim": "CLAIM_UNRECONCILED"}
         result = {**metadata, "status": "FAILED", "actual_market_date": None,
-                  "failure": {"stage": getattr(exc, "stage", stage), "type": type(exc).__name__},
+                  "failure": {"stage": getattr(exc, "stage", stage), "type": type(exc).__name__,
+                              "reason": known_failures.get(str(exc), "UNCLASSIFIED")},
                   "finished_at": datetime.now(SHANGHAI).isoformat()}
         if getattr(exc, "safe_summary", None):
             result["failure_summary"] = exc.safe_summary

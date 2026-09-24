@@ -1,0 +1,34 @@
+{
+  "source_sha": "f1269bd035e21ed0387ac597d52bffe76dfc9f54",
+  "runner_sha": "71667ad8a40c98604a39472d06a4036f65db5fd1",
+  "events": [
+    {
+      "stage": "LOCKED_INSTALL",
+      "started_at": "2026-09-24T16:39:06.650836+08:00",
+      "finished_at": "2026-09-24T16:39:08.468504+08:00",
+      "exit_code": 0,
+      "error_type": null
+    },
+    {
+      "stage": "LOCKED_INSTALL",
+      "started_at": "2026-09-24T16:39:08.468530+08:00",
+      "finished_at": "2026-09-24T16:39:10.035909+08:00",
+      "exit_code": 0,
+      "error_type": null
+    },
+    {
+      "stage": "JOURNAL_INSPECT",
+      "started_at": "2026-09-24T16:39:10.035998+08:00",
+      "finished_at": "2026-09-24T16:39:10.099937+08:00",
+      "exit_code": 0,
+      "error_type": null
+    },
+    {
+      "stage": "DAILY_SCAN",
+      "started_at": "2026-09-24T16:39:10.100011+08:00",
+      "finished_at": "2026-09-24T16:44:31.524544+08:00",
+      "exit_code": 1,
+      "error_type": null
+    }
+  ]
+}

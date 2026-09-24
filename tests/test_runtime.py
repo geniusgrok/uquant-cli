@@ -313,7 +313,9 @@ def test_adjusted_rebase_keeps_verified_prefix_and_rejects_other_revisions(tmp_p
     old = pd.DataFrame({"date": ["2026-09-22", "2026-09-23"],
                         "open": [100.0, 110.0], "high": [101.0, 111.0],
                         "low": [99.0, 109.0], "close": [100.0, 110.0],
-                        "volume": [1200.0, 1300.0], "amount": [120000.0, 143000.0]})
+                        "volume": [1200.0, 1300.0], "amount": [120000.0, 143000.0],
+                        "outstanding_share": [100000.0, 100000.0],
+                        "turnover": [.012, .013]})
     fresh = pd.concat([old.assign(**{p: old[p] / 1.01 for p in ("open", "high", "low", "close")}),
                        pd.DataFrame({"date": ["2026-09-24"], "open": [99.0], "high": [100.0],
                                      "low": [98.0], "close": [99.0], "volume": [1400.0],
@@ -332,6 +334,38 @@ def test_adjusted_rebase_keeps_verified_prefix_and_rejects_other_revisions(tmp_p
     changed = fresh.copy()
     changed.loc[0, "volume"] += 1
     changed.to_csv(today / (symbol + ".csv"), index=False)
+    with pytest.raises(ValueError, match="nonprice"):
+        market._anchor_adjusted_history(today, prior, symbol, "2026-09-23", "2026-09-24")
+
+
+def test_previous_float_metadata_revision_preserves_account_history(tmp_path):
+    import pandas as pd
+
+    prior, today = tmp_path / "prior", tmp_path / "today"
+    prior.mkdir()
+    today.mkdir()
+    symbol = "sz300054"
+    old = pd.DataFrame({"date": ["2026-09-22", "2026-09-23"], "open": [70., 71.],
+                        "high": [72., 73.], "low": [69., 70.], "close": [71., 72.],
+                        "volume": [1000., 1100.], "amount": [71000., 79200.],
+                        "outstanding_share": [100000., 100000.], "turnover": [.01, .011]})
+    new = old.copy()
+    new.loc[1, "outstanding_share"] = 101000.
+    new.loc[1, "turnover"] = 1100 / 101000
+    new = pd.concat([new, pd.DataFrame({"date": ["2026-09-24"], "open": [72.],
+                      "high": [73.], "low": [71.], "close": [72.], "volume": [1200.],
+                      "amount": [86400.], "outstanding_share": [101000.],
+                      "turnover": [1200 / 101000]})], ignore_index=True)
+    old.to_csv(prior / (symbol + ".csv"), index=False)
+    new.to_csv(today / (symbol + ".csv"), index=False)
+    old.tail(1).to_csv(prior / (symbol + ".raw.csv"), index=False)
+    new.tail(2).to_csv(today / (symbol + ".raw.csv"), index=False)
+    assert market._anchor_adjusted_history(today, prior, symbol, "2026-09-23", "2026-09-24") == 1
+    anchored = pd.read_csv(today / (symbol + ".csv"))
+    pd.testing.assert_frame_equal(anchored.iloc[:-1], old, check_dtype=False)
+    assert anchored.iloc[-1]["outstanding_share"] == 101000
+    new.loc[0, "volume"] += 1
+    new.to_csv(today / (symbol + ".csv"), index=False)
     with pytest.raises(ValueError, match="nonprice"):
         market._anchor_adjusted_history(today, prior, symbol, "2026-09-23", "2026-09-24")
 

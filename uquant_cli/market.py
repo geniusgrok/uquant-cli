@@ -167,7 +167,38 @@ def _select_source(providers: dict, preferred: str | None, normalize, attempts: 
     raise last if last is not None else ValueError("no market provider")
 
 
-def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = None) -> dict:
+def _anchor_adjusted_history(root: Path, prior_root: Path, symbol: str, previous: str, day: str) -> float | None:
+    """Keep the account's verified price scale when a provider rebases qfq history."""
+    old = pd.read_csv(prior_root / (symbol + ".csv"))
+    current_path = root / (symbol + ".csv")
+    current = pd.read_csv(current_path)
+    prefix = current.loc[current["date"] <= previous].reset_index(drop=True)
+    if not old["date"].equals(prefix["date"]) or len(current) != len(old) + 1 or current.iloc[-1]["date"] != day:
+        raise ValueError("adjusted history dates differ from verified account input")
+    if old.equals(prefix):
+        return None
+    price = ["open", "high", "low", "close"]
+    nonprice = [column for column in old if column not in price]
+    if not old[nonprice].equals(prefix[nonprice]):
+        raise ValueError("adjusted history nonprice fields changed")
+    # A real ex-date rebase changes the adjusted scale but not the preceding raw close.
+    old_raw = pd.read_csv(prior_root / (symbol + ".raw.csv"))
+    new_raw = pd.read_csv(root / (symbol + ".raw.csv"))
+    prior_raw = old_raw.loc[old_raw["date"] == previous]
+    current_raw = new_raw.loc[new_raw["date"] == previous]
+    if len(prior_raw) != 1 or not prior_raw.reset_index(drop=True).equals(current_raw.reset_index(drop=True)):
+        raise ValueError("raw history changed with adjusted history")
+    factor = float(old.iloc[-1]["close"] / prefix.iloc[-1]["close"])
+    if not math.isfinite(factor) or factor <= 0 or not ((old[price] - prefix[price] * factor).abs() <= 0.011).all().all():
+        raise ValueError("adjusted history is not a uniform price rebase")
+    today = current.tail(1).copy()
+    today[price] = today[price] * factor
+    pd.concat([old, today], ignore_index=True).to_csv(current_path, index=False)
+    return factor
+
+
+def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = None,
+            prior_root: Path | None = None) -> dict:
     from uquant.engine import INDEX_SYMBOLS, REFERENCE_UNIVERSE
 
     ak = importlib.import_module("akshare")
@@ -245,8 +276,21 @@ def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = N
         except Exception as exc:
             failed(key, exc)
 
+    rebases = {}
+    if prior_root is not None and not failures:
+        for symbol in sorted(coverage):
+            if symbol in INDEX_SYMBOLS:
+                continue
+            try:
+                factor = _anchor_adjusted_history(root, prior_root, symbol, previous, day)
+                if factor is not None:
+                    rebases[symbol] = {"previous_session": previous, "factor": factor,
+                                       "verified_prefix": "previous account input"}
+            except (ValueError, KeyError, OSError) as exc:
+                failed(symbol, exc)
     audit = {"provider": "AkShare/multi-source", "fetched_at": datetime.now(SHANGHAI).isoformat(),
              "coverage": coverage, "quotes": quotes, "failures": failures, "attempts": attempts}
+    audit["adjusted_history_rebases"] = rebases
     put(root, "audit.json", audit)
     if failures:
         raise LiveInputError(failures)

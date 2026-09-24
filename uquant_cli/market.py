@@ -175,22 +175,30 @@ def _anchor_adjusted_history(root: Path, prior_root: Path, symbol: str, previous
     prefix = current.loc[current["date"] <= previous].reset_index(drop=True)
     if not old["date"].equals(prefix["date"]) or len(current) != len(old) + 1 or current.iloc[-1]["date"] != day:
         raise ValueError("adjusted history dates differ from verified account input")
+    price = ["open", "high", "low", "close"]
+    float_metadata = ["outstanding_share", "turnover"]
+    stable = [column for column in old if column not in (*price, *float_metadata)]
+    if not old[stable].equals(prefix[stable]):
+        raise ValueError("adjusted history nonprice fields changed")
+    metadata_changed = not old[float_metadata].equals(prefix[float_metadata])
+    if metadata_changed and not old[float_metadata].iloc[:-1].equals(prefix[float_metadata].iloc[:-1]):
+        raise ValueError("older float metadata changed")
     if old.equals(prefix):
         return None
-    price = ["open", "high", "low", "close"]
-    nonprice = [column for column in old if column not in price]
-    if not old[nonprice].equals(prefix[nonprice]):
-        raise ValueError("adjusted history nonprice fields changed")
     # A real ex-date rebase changes the adjusted scale but not the preceding raw close.
     old_raw = pd.read_csv(prior_root / (symbol + ".raw.csv"))
     new_raw = pd.read_csv(root / (symbol + ".raw.csv"))
     prior_raw = old_raw.loc[old_raw["date"] == previous]
     current_raw = new_raw.loc[new_raw["date"] == previous]
-    if len(prior_raw) != 1 or not prior_raw.reset_index(drop=True).equals(current_raw.reset_index(drop=True)):
+    raw_columns = ["date", *price, "volume", "amount"] if metadata_changed else list(old_raw)
+    if (len(prior_raw) != 1 or not prior_raw[raw_columns].reset_index(drop=True).equals(
+            current_raw[raw_columns].reset_index(drop=True))):
         raise ValueError("raw history changed with adjusted history")
     factor = float(old.iloc[-1]["close"] / prefix.iloc[-1]["close"])
     if not math.isfinite(factor) or factor <= 0 or not ((old[price] - prefix[price] * factor).abs() <= 0.011).all().all():
         raise ValueError("adjusted history is not a uniform price rebase")
+    if metadata_changed and not old[price].equals(prefix[price]):
+        raise ValueError("price and float metadata both changed")
     today = current.tail(1).copy()
     today[price] = today[price] * factor
     pd.concat([old, today], ignore_index=True).to_csv(current_path, index=False)
@@ -285,6 +293,7 @@ def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = N
                 factor = _anchor_adjusted_history(root, prior_root, symbol, previous, day)
                 if factor is not None:
                     rebases[symbol] = {"previous_session": previous, "factor": factor,
+                                       "kind": "float_metadata" if factor == 1 else "adjustment_scale",
                                        "verified_prefix": "previous account input"}
             except (ValueError, KeyError, OSError) as exc:
                 failed(symbol, exc)

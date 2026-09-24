@@ -50,6 +50,12 @@ def main() -> int:
         if outcome.get("status") in allowed:
             print("UQUANT_STATUS=" + outcome["status"])
             print("TARGET_DATE=" + outcome["target_date"])
+            if outcome["status"] == "FAILED":
+                failure = outcome.get("failure", {})
+                print("FAILURE_STAGE=" + failure.get("stage", "UNKNOWN"))
+                print("FAILURE_REASON=" + failure.get("reason", "UNCLASSIFIED"))
+                if outcome.get("failure_summary"):
+                    print("FAILURE_SUMMARY=" + outcome["failure_summary"])
     else:
         print("UQUANT_STATUS=BOOTSTRAP_OR_PROCESS_FAILED")
     print("REPORT_REPOSITORY=geniusgrok/uquant-cli; SOURCE_REPOSITORY=READ_ONLY")

@@ -40,9 +40,9 @@ def prior(root: Path, context: dict) -> dict | None:
 
 
 def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> dict:
-    from uquant.account import load_account, save_account
+    from uquant.account import load_account, migrate_code_identity, save_account
     from uquant.config import DEFAULT_CONFIG, config_fingerprint
-    from uquant.engine import ProductionEngine
+    from uquant.engine import ProductionEngine, code_fingerprint
     from uquant.types import AccountState
 
     day = metadata["target_date"]
@@ -58,7 +58,13 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
     # Only this explicitly non-executing observer state may ever be published publicly.
     if account.positions or getattr(account, "broker_as_of", ""):
         raise RuntimeError("real or executed account input is not authorized for public publication")
-    save_account(account, work / "account_before.json")
+    current_code_hash = code_fingerprint() if previous is not None else None
+    if previous is not None and account.code_hash != current_code_hash:
+        # This observer follows reviewed production main. Preserve every economic state field.
+        account = migrate_code_identity(root / "state/account.json", work / "account_before.json",
+            new_code_hash=current_code_hash, acknowledge_code_change=True)
+    else:
+        save_account(account, work / "account_before.json")
     decision = engine.decide(symbols=SYMBOLS, as_of=day, account=account)
     account.pending_orders = list(decision.pending_orders)
     raw = asdict(decision)

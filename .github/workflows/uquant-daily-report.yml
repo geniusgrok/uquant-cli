@@ -2,7 +2,9 @@ name: Uquant daily report
 on:
   workflow_dispatch:
   schedule:
-    - cron: '31 8 * * 1-5'
+    - cron: '31 8 * * 1-5' # 北京时间 16:31
+    - cron: '36 9 * * 1-5' # 北京时间 17:36，行情晚到时自动补跑
+    - cron: '36 10 * * 1-5' # 北京时间 18:36，第二次补跑
   push:
     branches: [main]
     paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', 'publish_main_report.py', '.github/workflows/uquant-daily-report.yml']

@@ -23,20 +23,22 @@ class BootstrapTests(unittest.TestCase):
 
     def test_credentials_are_managed_only_by_official_checkout(self):
         launcher = Path("runner.py").read_text()
+        bootstrap = Path("bootstrap.py").read_text()
         store = Path("uquant_cli/store.py").read_text()
-        for text in (launcher, store):
+        for text in (launcher, bootstrap, store):
             self.assertNotIn("UQUANT_READ_TOKEN", text)
             self.assertNotIn("PASSPHRASE", text)
             self.assertNotIn("import base64", text)
         text = Path(".github/workflows/uquant-daily-report.yml").read_text()
         self.assertEqual(text.count("token: ${{ secrets.UQUANT_READ_TOKEN }}"), 1)
         self.assertIn("ref: uquant-daily-reports", text)
-        self.assertIn("disabled://source-read-only", launcher)
+        self.assertIn("disabled://source-read-only", bootstrap)
 
-    def test_workflow_writes_only_to_cli_and_has_one_schedule(self):
+    def test_workflow_writes_only_to_cli_and_retries_late_market_data(self):
         text = Path(".github/workflows/uquant-daily-report.yml").read_text()
-        self.assertEqual(text.count("cron:"), 1)
-        self.assertIn("1 9 * * 1-5", text)
+        self.assertEqual(text.count("cron:"), 3)
+        for schedule in ("31 8 * * 1-5", "36 9 * * 1-5", "36 10 * * 1-5"):
+            self.assertIn("cron: '" + schedule + "'", text)
         self.assertIn("contents: write", text)
         self.assertNotIn("UQUANT_REPORT_WRITE_TOKEN", text)
         self.assertNotIn("upload-artifact", text)

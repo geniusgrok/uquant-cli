@@ -51,3 +51,22 @@ jobs:
           REPORT_STATE_DIR: ${{ github.workspace }}/.runtime/report-state
           REPORT_PUBLISH_TOKEN: ${{ github.token }}
         run: python publish_main_report.py
+      - name: Retain approved originals when a run fails
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: daily-recovery-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/events.json
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/status.json
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/calendar.json
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/report.md
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/result.json
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/decision.json
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/account_before.json
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/account_after.json
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/inputs/audit.json
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/inputs/sh*.csv
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/inputs/sz*.csv
+          if-no-files-found: warn
+          retention-days: 30

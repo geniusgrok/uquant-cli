@@ -41,7 +41,13 @@ class BootstrapTests(unittest.TestCase):
             self.assertIn("cron: '" + schedule + "'", text)
         self.assertIn("contents: write", text)
         self.assertNotIn("UQUANT_REPORT_WRITE_TOKEN", text)
-        self.assertNotIn("upload-artifact", text)
+        artifact = text.split("name: Retain approved originals when a run fails", 1)[1]
+        self.assertIn("if: failure()", artifact)
+        self.assertIn("operation/publishable/inputs/audit.json", artifact)
+        self.assertIn("operation/publishable/inputs/sh*.csv", artifact)
+        self.assertIn("operation/publishable/inputs/sz*.csv", artifact)
+        for forbidden in (".runtime/production", "uv-cache", "/venv/", "/journal/"):
+            self.assertNotIn(forbidden, artifact)
 
 
 if __name__ == "__main__":

@@ -10,18 +10,73 @@ from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 
-from .market import SHANGHAI, SYMBOLS, calendar_now, refresh
+from .market import LiveInputError, SHANGHAI, SYMBOLS, calendar_now, refresh, session_context
 from .report import compare, json_safe, render, signals
 from .store import GitStore, identity, open_store, put, read, verify
 
 OBSERVER = "uquant-13-continuous-no-execution-v1"
 
 
+def calendar_context(root: Path, now: datetime) -> tuple[dict, list[str]]:
+    try:
+        return calendar_now(now)
+    except Exception:
+        # Reuse only a calendar whose bytes are bound to the last successful receipt.
+        if not (root / "latest.json").exists():
+            raise
+        receipt = read(root, "latest.json")
+        verify(root, receipt["files"])
+        path = str(Path(receipt["result_path"]).parent / "calendar.json")
+        if path not in receipt["files"]:
+            raise
+        dates = read(root, path)
+        context = session_context(dates, now)
+        context["calendar_source"] = "已核验的前次交易日历"
+        return context, dates
+
+
+def next_unfinished_session(root: Path, context: dict, dates: list[str]) -> dict:
+    """Resume the oldest missing session before today's decision."""
+    if not (root / "latest.json").exists():
+        claims = sorted((root / "claims").glob("*.json"))
+        if len(claims) == 1:
+            claim = read(root, claims[0].relative_to(root).as_posix())
+            day = claim.get("target_date")
+            earlier = [value for value in dates if day and value < day]
+            if (claim.get("status") == "STARTED" and day in dates
+                    and day <= context["target_date"] and earlier
+                    and claim.get("previous_session") == max(earlier)):
+                return {**context, "target_date": day, "previous_session": max(earlier),
+                        "calendar_target_date": context["target_date"],
+                        "selection_reason": "优先补做未完成的首次交易日"}
+        return context
+    receipt = read(root, "latest.json")
+    verify(root, receipt["files"])
+    previous = read(root, receipt["result_path"])["target_date"]
+    if not dates or previous < min(dates):
+        raise RuntimeError("trading calendar no longer covers the account gap")
+    pending = [day for day in sorted(set(dates)) if previous < day <= context["target_date"]]
+    if len(pending) <= 1:
+        return context
+    return {**context, "target_date": pending[0], "previous_session": previous,
+            "calendar_target_date": context["target_date"],
+            "selection_reason": "优先补做缺失的最早交易日"}
+
+
 def prior(root: Path, context: dict) -> dict | None:
     if not (root / "latest.json").exists():
-        if any(read(root, path.relative_to(root).as_posix()).get("status") != "COMPLETE"
-               for path in (root / "claims").glob("*.json")):
-            raise RuntimeError("unreconciled production claim")
+        claims = sorted((root / "claims").glob("*.json"))
+        if claims:
+            if len(claims) != 1:
+                raise RuntimeError("unreconciled production claim")
+            claim = read(root, claims[0].relative_to(root).as_posix())
+            if not (claims[0].name == str(context.get("target_date", "")) + ".json"
+                    and claim.get("status") == "STARTED"
+                    and claim.get("target_date") == context.get("target_date")
+                    and claim.get("previous_session") == context.get("previous_session")
+                    and str(claim.get("run_url", "")).startswith(
+                        "https://github.com/geniusgrok/uquant-cli/actions/runs/")):
+                raise RuntimeError("unreconciled production claim")
         previous_state = [root / "state/account.json", root / "account.json"]
         if (any(path.exists() for path in previous_state)
                 or list((root / "reports").glob("*/result.json"))
@@ -166,14 +221,16 @@ def main() -> int:
         "run_url": f"https://github.com/geniusgrok/uquant-cli/actions/runs/{os.environ['GITHUB_RUN_ID']}",
         "source_sha": os.environ["UQUANT_SOURCE_SHA"], "runner_sha": os.environ["GITHUB_SHA"],
         "started_at": os.environ["UQUANT_STARTED_AT"]}
-    stage = "CALENDAR"
+    stage = "STATE"
     try:
         with open(os.devnull, "w") as silent, contextlib.redirect_stdout(silent), contextlib.redirect_stderr(silent):
-            context, dates = calendar_now(datetime.now(SHANGHAI))
+            store = open_store(args.root / "state-checkout")
+            stage = "CALENDAR"
+            context, dates = calendar_context(store.root, datetime.now(SHANGHAI))
             put(work, "calendar.json", dates)
             metadata.update(context)
             stage = "STATE_AND_DECISION"
-            store = open_store(args.root / "state-checkout")
+            metadata.update(next_unfinished_session(store.root, context, dates))
             result = run_once(store, work, metadata)
         put(work, "status.json", {key: result[key] for key in
             ("status", "target_date", "source_sha", "run_url", "started_at", "finished_at")})
@@ -185,7 +242,8 @@ def main() -> int:
                           "unreconciled production claim": "CLAIM_UNRECONCILED"}
         result = {**metadata, "status": "FAILED", "actual_market_date": None,
                   "failure": {"stage": getattr(exc, "stage", stage), "type": type(exc).__name__,
-                              "reason": known_failures.get(str(exc), "UNCLASSIFIED")},
+                              "reason": ("MARKET_INPUT_UNAVAILABLE" if isinstance(exc, LiveInputError)
+                                         else known_failures.get(str(exc), "UNCLASSIFIED"))},
                   "finished_at": datetime.now(SHANGHAI).isoformat()}
         if getattr(exc, "safe_summary", None):
             result["failure_summary"] = exc.safe_summary

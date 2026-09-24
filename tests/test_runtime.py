@@ -137,6 +137,47 @@ def test_failed_same_day_claim_can_resume_only_from_verified_previous_receipt(tm
         daily.prior(tmp_path, context)
 
 
+def test_missing_trading_day_is_recovered_before_current_day(tmp_path):
+    previous = result()
+    previous_path = "reports/2026-09-23/result.json"
+    put(tmp_path, previous_path, previous)
+    put(tmp_path, "state/account.json", {"continuous": True})
+    put(tmp_path, "latest.json", {"result_path": previous_path, "files": {
+        previous_path: identity(tmp_path / previous_path),
+        "state/account.json": identity(tmp_path / "state/account.json")}})
+    put(tmp_path, "claims/2026-09-24.json", {"status": "STARTED", "target_date": "2026-09-24",
+        "previous_session": "2026-09-23",
+        "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/123"})
+    today = {"target_date": "2026-09-25", "previous_session": "2026-09-24"}
+    recovered = daily.next_unfinished_session(tmp_path, today,
+        ["2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25"])
+    assert recovered["target_date"] == "2026-09-24"
+    assert recovered["previous_session"] == "2026-09-23"
+    assert recovered["calendar_target_date"] == "2026-09-25"
+    assert daily.prior(tmp_path, recovered) == previous
+    put(tmp_path, "state/account.json", {"continuous": False})
+    with pytest.raises(ValueError, match="manifest"):
+        daily.next_unfinished_session(tmp_path, today, ["2026-09-24", "2026-09-25"])
+    put(tmp_path, "state/account.json", {"continuous": True})
+    with pytest.raises(RuntimeError, match="calendar"):
+        daily.next_unfinished_session(tmp_path, today, ["2026-09-24", "2026-09-25"])
+
+
+def test_unfinished_first_day_can_resume_without_resetting_existing_state(tmp_path):
+    put(tmp_path, "claims/2026-09-23.json", {"status": "STARTED", "target_date": "2026-09-23",
+        "previous_session": "2026-09-22",
+        "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/123"})
+    current = {"target_date": "2026-09-25", "previous_session": "2026-09-24"}
+    selected = daily.next_unfinished_session(tmp_path, current,
+        ["2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25"])
+    assert selected["target_date"] == "2026-09-23"
+    assert selected["previous_session"] == "2026-09-22"
+    assert daily.prior(tmp_path, selected) is None
+    put(tmp_path, "state/account.json", {})
+    with pytest.raises(RuntimeError, match="reset"):
+        daily.prior(tmp_path, selected)
+
+
 def test_legacy_encrypted_account_is_not_silently_reset(tmp_path):
     put(tmp_path, ".state/account.json.manifest.json", {})
     with pytest.raises(RuntimeError, match="reset"):
@@ -233,6 +274,7 @@ def test_observer_code_update_preserves_account_before_decision(tmp_path):
 
 
 def test_market_request_retries_transient_failures_only(monkeypatch):
+    assert market._failure_category(FileNotFoundError("missing previous input")) == "data_contract"
     monkeypatch.setattr(market, "pause", lambda _: None)
     calls = 0
 

@@ -58,6 +58,8 @@ def _retry_request(operation, attempts: int = 3):
 
 def _failure_category(exc: Exception) -> str:
     name = type(exc).__name__
+    if isinstance(exc, FileNotFoundError):
+        return "data_contract"
     if isinstance(exc, (TimeoutError, OSError)) or name in {
             "ConnectionError", "ConnectTimeout", "ReadTimeout", "Timeout"}:
         return "network"

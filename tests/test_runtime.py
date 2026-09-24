@@ -174,6 +174,40 @@ def test_reused_result_does_not_execute(tmp_path):
 
 
 
+def test_observer_code_update_preserves_account_before_decision(tmp_path):
+    from types import SimpleNamespace
+    from uquant.account import economic_state_sha256, load_account, save_account
+    from uquant.config import DEFAULT_CONFIG, config_fingerprint
+    from uquant.engine import code_fingerprint
+    from uquant.types import AccountState
+
+    account = AccountState.empty(DEFAULT_CONFIG.initial_cash)
+    account.code_hash = "previous-production-code"
+    account.last_successful_run = "2026-09-23"
+    before = economic_state_sha256(account)
+    source = tmp_path / "state/account.json"
+    source.parent.mkdir()
+    save_account(account, source)
+    work = tmp_path / "work"
+    work.mkdir()
+
+    class ReachedDecision(Exception):
+        pass
+
+    def decide(*, symbols, as_of, account):
+        assert as_of == "2026-09-24"
+        assert account.code_hash == code_fingerprint()
+        assert economic_state_sha256(account) == before
+        assert account.account_migrations[-1]["migration_type"] == "code_identity_only"
+        raise ReachedDecision
+
+    with patch("uquant.engine.ProductionEngine", return_value=SimpleNamespace(decide=decide)):
+        with pytest.raises(ReachedDecision):
+            daily.compute(tmp_path, work, {"target_date": "2026-09-24"},
+                          {"config_sha256": config_fingerprint(DEFAULT_CONFIG)})
+    assert economic_state_sha256(load_account(work / "account_before.json")) == before
+
+
 def test_market_request_retries_transient_failures_only(monkeypatch):
     monkeypatch.setattr(market, "pause", lambda _: None)
     calls = 0

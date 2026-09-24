@@ -18,10 +18,10 @@ OBSERVER = "uquant-13-continuous-no-execution-v1"
 
 
 def prior(root: Path, context: dict) -> dict | None:
-    for path in (root / "claims").glob("*.json"):
-        if read(root, path.relative_to(root).as_posix()).get("status") != "COMPLETE":
-            raise RuntimeError("unreconciled production claim")
     if not (root / "latest.json").exists():
+        if any(read(root, path.relative_to(root).as_posix()).get("status") != "COMPLETE"
+               for path in (root / "claims").glob("*.json")):
+            raise RuntimeError("unreconciled production claim")
         previous_state = [root / "state/account.json", root / "account.json"]
         if (any(path.exists() for path in previous_state)
                 or list((root / "reports").glob("*/result.json"))
@@ -36,6 +36,20 @@ def prior(root: Path, context: dict) -> dict | None:
         raise RuntimeError("observer identity changed")
     if result["target_date"] not in {context["target_date"], context["previous_session"]}:
         raise RuntimeError("observer trading-session gap")
+    for path in (root / "claims").glob("*.json"):
+        claim = read(root, path.relative_to(root).as_posix())
+        if claim.get("status") == "COMPLETE":
+            continue
+        recoverable = (path.name == context["target_date"] + ".json"
+            and claim.get("status") == "STARTED"
+            and claim.get("target_date") == context["target_date"]
+            and claim.get("previous_session") == context["previous_session"]
+            and result["target_date"] == context["previous_session"]
+            and str(claim.get("run_url", "")).startswith(
+                "https://github.com/geniusgrok/uquant-cli/actions/runs/")
+            and not (root / "reports" / context["target_date"] / "result.json").exists())
+        if not recoverable:
+            raise RuntimeError("unreconciled production claim")
     return result
 
 
@@ -114,6 +128,8 @@ def run_once(store: GitStore, work: Path, metadata: dict) -> dict:
     refresh(work / "inputs", day, metadata["previous_session"], prior_audit=saved_sources)
     claim_path = f"claims/{day}.json"
     claim = {**metadata, "status": "STARTED"}
+    if (store.root / claim_path).exists():
+        claim["recovered_from_run_url"] = read(store.root, claim_path)["run_url"]
     put(store.root, claim_path, claim)
     # A conflicting or ambiguous claim write raises before the engine is called.
     store.publish([claim_path], "Claim production decision " + day)

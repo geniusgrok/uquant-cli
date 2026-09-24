@@ -113,6 +113,30 @@ def test_missing_continuity_never_resets_account(tmp_path):
         daily.prior(tmp_path, {})
 
 
+def test_failed_same_day_claim_can_resume_only_from_verified_previous_receipt(tmp_path):
+    previous = result()
+    name = "reports/2026-09-23/result.json"
+    put(tmp_path, name, previous)
+    put(tmp_path, "state/account.json", {"continuous": True})
+    put(tmp_path, "latest.json", {"result_path": name, "files": {
+        name: identity(tmp_path / name),
+        "state/account.json": identity(tmp_path / "state/account.json"),
+    }})
+    claim = {"status": "STARTED", "target_date": "2026-09-24",
+             "previous_session": "2026-09-23",
+             "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/123"}
+    put(tmp_path, "claims/2026-09-24.json", claim)
+    context = {"target_date": "2026-09-24", "previous_session": "2026-09-23"}
+    assert daily.prior(tmp_path, context) == previous
+    put(tmp_path, "state/account.json", {"continuous": False})
+    with pytest.raises(ValueError, match="manifest"):
+        daily.prior(tmp_path, context)
+    put(tmp_path, "state/account.json", {"continuous": True})
+    put(tmp_path, "reports/2026-09-24/result.json", {})
+    with pytest.raises(RuntimeError, match="claim"):
+        daily.prior(tmp_path, context)
+
+
 def test_legacy_encrypted_account_is_not_silently_reset(tmp_path):
     put(tmp_path, ".state/account.json.manifest.json", {})
     with pytest.raises(RuntimeError, match="reset"):

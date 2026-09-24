@@ -183,7 +183,6 @@ def test_observer_code_update_preserves_account_before_decision(tmp_path):
 
     account = AccountState.empty(DEFAULT_CONFIG.initial_cash)
     account.code_hash = "previous-production-code"
-    account.last_successful_run = "2026-09-23"
     before = economic_state_sha256(account)
     source = tmp_path / "state/account.json"
     source.parent.mkdir()

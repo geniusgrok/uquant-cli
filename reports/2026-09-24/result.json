@@ -1,0 +1,741 @@
+{
+  "actual_market_date": "2026-09-24",
+  "calendar_source": "akshare/Sina",
+  "checked_at": "2026-09-25T00:31:35.973505+08:00",
+  "comparison": {
+    "changes": [],
+    "reason": "比较口径变化：economic_code_hash",
+    "status": "INCOMPARABLE"
+  },
+  "config_sha256": "4d9c3495556d78e24f629355bb2bedbd4f3e823a53cf30499c9f18e04d53fda6",
+  "data_manifest": {
+    "adjustment": "QFQ stocks; raw indices",
+    "digest": "767488a496d7d62d07fcdc546feabe17ed41dabc6f58f2e095343194650c0806",
+    "end": "2026-09-24",
+    "files": {
+      "sh000300.csv": "28e9333d9910df18661aecb9743578183a4692ee162859f06f0cc8741e917acb",
+      "sh000682.csv": "c26bc60f6cf92f230489e49b26c55fba3ccf8775b341169cf82e9269be818cb4",
+      "sh600487.csv": "305ef01ea202f13248696d2ac7b10b2f6379082ee8d004fade9bc310187fe79a",
+      "sh601869.csv": "6abd35481992dbd46c53c35b43820db7abad12efad470dfc74434dde58c2c92c",
+      "sh603688.csv": "2ab52eed34fa50dc54fedbfc0999efce88afd630538b7196f54fdf387621b6e6",
+      "sh603986.csv": "934b0e7f1e477b38559babd024cc2dbf39295dddda2bcbea6d46dfb082aabf9a",
+      "sh688008.csv": "7f24281671ad48d9bcd0c4daa7a503473147152627c28bedeacf5f3b36d910a7",
+      "sh688012.csv": "f17e8a18347534f9d7b02f351324ded9dbd5df7fed03d8a47f2a778c87321ec8",
+      "sh688019.csv": "93f5abcdd99680c08d2adf92457c4fca39f3575bb7d0d695a7325502923dc2ef",
+      "sh688037.csv": "b6f69179a16615ddc1093116a7c0743c0e57125674c95c5f71404323d4da5cff",
+      "sh688041.csv": "0de1941165cc4674c994e05abc0bb06de63ce4e835d81b1cf2912f93027b7006",
+      "sh688072.csv": "5d1eace5bcc8374dc832e573b717c3ea6ff3628aba8b720e75011d4871c86739",
+      "sh688082.csv": "63b78420e7d1378c90ff321e4ab7392e1e2a4bd3aa23585ac3bcef6e307953c0",
+      "sh688110.csv": "b051dc7c81e0f908b6d543812febcf5160ca73d139c7ef2b0c143d7578d83053",
+      "sh688120.csv": "761c15fa31a957ea1b53bb026177d6c618711c63e06e8d0f8094d18d738156f9",
+      "sh688146.csv": "98d28ad9a0f46a4cd1ed32bfea5506646d325fe508923f4c64c760ff256e3d54",
+      "sh688200.csv": "b458b624ae49092260f15a4d13096d7efc42329869fbb191b520d4610fd209f2",
+      "sh688233.csv": "b78bbdc0b1ef4a58162691c88971b2b28474eaf0c667a3c8349201cd72de12fc",
+      "sh688256.csv": "2d330b285dd342fd08e0a5c96386fc2918a3e735bb189f38fb206a8133494c63",
+      "sh688268.csv": "9595b253073cb1a886ae10f46b5a035ccf88d18b1cf0a92adc0d19d20ab2ec18",
+      "sh688300.csv": "89a8f2355ea639616da46475bc2a9a345e1320fe98843bc73f4632e0a5be2b6c",
+      "sh688347.csv": "2d44bca4d3fe7055c165f15fccfbaf929ac082bdfff22f3531637eb076123c0c",
+      "sh688361.csv": "475ffae39bea83dd225a98a13c4a79c43086e27aa93a5bf6bd70180584c6ef19",
+      "sh688498.csv": "e7f88f017220b3c159ec1f3ffad2a2c61951df66779834ce2fef676aae71f50b",
+      "sh688766.csv": "98beb2b00af9f099f931e683152f0ccf4cf145069326f56ebd61f99c4411a737",
+      "sz000636.csv": "86e8066b2c83983a85598438c5299314540aba0019d8e4de2f43e69c503d1319",
+      "sz002281.csv": "6accfb669e658a990351ef5817705ce05cba4972bd021a806b919d279ac74d71",
+      "sz002371.csv": "2eefc2002a7168a625e0792961398b23923551ecd3aa4c7bbda66a3b72124715",
+      "sz002384.csv": "8428807da0861982c10096f502243f233198257257c3f90cadeba200a9d15bff",
+      "sz002409.csv": "eaa75f00803a933f3c7737a64c518557075f071ab82dd258e74f3dfb7973396b",
+      "sz300054.csv": "fb505e078dabb79e2a389b03594853b5d20be8738df854aa17320a227eddfe7f",
+      "sz300223.csv": "c1ed2a6cdc87eac915224bee6117933858af74d9d89ab77f67368209eb2e8464",
+      "sz300308.csv": "72cbb5354bfaee877964b811e547d21b2d88d331e049ad3c5104db8ba6bb5233",
+      "sz300394.csv": "2c8cc3d324e2d04fdcf2ab98baf1f216f1479515b744dbb64c589c7a44fbbe59",
+      "sz300502.csv": "fa0826a212377e6171641eb66fcd6eb0c8540a14fb0c36ccc57a58b6dc2c7d88",
+      "sz300604.csv": "d027de5ac2775485661a8afefbb9bf231f50f1bb4217d9562fe7a191a9712338",
+      "sz300666.csv": "aec03b9fe32c4e66b5a9ce4b512407860a87e89ee11d50079876c3b2ce72fabe"
+    },
+    "generated_at": "2026-09-24T16:33:25.340797+00:00",
+    "source": "live-akshare",
+    "start": "2023-08-07",
+    "symbols": [
+      "sh000300",
+      "sh000682",
+      "sh600487",
+      "sh601869",
+      "sh603688",
+      "sh603986",
+      "sh688008",
+      "sh688012",
+      "sh688019",
+      "sh688037",
+      "sh688041",
+      "sh688072",
+      "sh688082",
+      "sh688110",
+      "sh688120",
+      "sh688146",
+      "sh688200",
+      "sh688233",
+      "sh688256",
+      "sh688268",
+      "sh688300",
+      "sh688347",
+      "sh688361",
+      "sh688498",
+      "sh688766",
+      "sz000636",
+      "sz002281",
+      "sz002371",
+      "sz002384",
+      "sz002409",
+      "sz300054",
+      "sz300223",
+      "sz300308",
+      "sz300394",
+      "sz300502",
+      "sz300604",
+      "sz300666"
+    ]
+  },
+  "economic_code_hash": "a8b10880b15f8d0305f17e2acecc5939af3fc3e95a9ddb2803f753536652d7ee",
+  "finished_at": "2026-09-25T00:33:25.340823+08:00",
+  "initial_cash": 2000000.0,
+  "observer_id": "uquant-13-continuous-no-execution-v1",
+  "observer_start": "2026-09-23",
+  "previous_session": "2026-09-23",
+  "requested_date": "2026-09-25",
+  "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/36027926767",
+  "runner_sha": "ea0e37f3f977ed45e8dc8ac6d20e2911e1a94718",
+  "schema": "uquant-cli.daily.v1",
+  "selection_reason": "非交易日使用最近一个已完成交易日",
+  "signals": {
+    "market": {
+      "base_freeze_new_risk": false,
+      "freeze_new_risk": false,
+      "opportunity": "RECOVERY",
+      "reduction_level": 0,
+      "risk": "NORMAL",
+      "sector_guard_active": false,
+      "sentinel_causal_active_families": [],
+      "sentinel_causal_coverage_status": "READY",
+      "sentinel_freeze_new_risk": false,
+      "severity": "NORMAL",
+      "system_gross_cap": 1.0,
+      "target_gross_cap": 1.0
+    },
+    "stocks": [
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.45224462316235137
+        },
+        "name": "中际旭创",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 895.86,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz300308",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "optical",
+          "mature": false,
+          "score": 0.45224462316235137,
+          "symbol": "sz300308"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.6103349689107364
+        },
+        "name": "新易盛",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 435.0,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz300502",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "optical",
+          "mature": false,
+          "score": 0.6103349689107364,
+          "symbol": "sz300502"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.7887159755736156
+        },
+        "name": "天孚通信",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 267.93,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz300394",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "optical",
+          "mature": false,
+          "score": 0.7887159755736156,
+          "symbol": "sz300394"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.4979976481021525
+        },
+        "name": "寒武纪",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 1091.48,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688256",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "compute",
+          "mature": false,
+          "score": 0.4979976481021525,
+          "symbol": "sh688256"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.206018090202151
+        },
+        "name": "兆易创新",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 383.77,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh603986",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "memory",
+          "mature": false,
+          "score": 0.206018090202151,
+          "symbol": "sh603986"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.7905661616269875
+        },
+        "name": "拓荆科技",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 700.9,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688072",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "equipment",
+          "mature": false,
+          "score": 0.7905661616269875,
+          "symbol": "sh688072"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.4981899550718816
+        },
+        "name": "联瑞新材",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 167.8,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688300",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "materials",
+          "mature": false,
+          "score": 0.4981899550718816,
+          "symbol": "sh688300"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.38433139471612054
+        },
+        "name": "鼎龙股份",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 70.11,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz300054",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "equipment",
+          "mature": false,
+          "score": 0.38433139471612054,
+          "symbol": "sz300054"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.891082703585252
+        },
+        "name": "中科飞测",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 370.3,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688361",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "equipment",
+          "mature": false,
+          "score": 0.891082703585252,
+          "symbol": "sh688361"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.2333456334317325
+        },
+        "name": "雅克科技",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 132.62,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz002409",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "pcb",
+          "mature": false,
+          "score": 0.2333456334317325,
+          "symbol": "sz002409"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.8865340812777145
+        },
+        "name": "源杰科技",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 1700.03,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688498",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "packaging",
+          "mature": false,
+          "score": 0.8865340812777145,
+          "symbol": "sh688498"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.5929605821821922
+        },
+        "name": "华海清科",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 247.17,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688120",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "equipment",
+          "mature": false,
+          "score": 0.5929605821821922,
+          "symbol": "sh688120"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.46237064345209855
+        },
+        "name": "东山精密",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": null,
+          "close": 185.99,
+          "date": "2026-09-24",
+          "provider": "Sina"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz002384",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "unknown",
+          "mature": false,
+          "score": 0.46237064345209855,
+          "symbol": "sz002384"
+        }
+      }
+    ]
+  },
+  "source_sha": "8512c6a2d17466dbd3efed384d096b16a0ba4d7f",
+  "started_at": "2026-09-25T00:31:32.089072+08:00",
+  "status": "COMPLETE",
+  "target_date": "2026-09-24"
+}

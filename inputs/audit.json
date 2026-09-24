@@ -1,56 +1,58 @@
 {
+  "adjusted_history_rebases": {
+    "sh688498": {
+      "factor": 1.0005767079205066,
+      "kind": "adjustment_scale",
+      "previous_session": "2026-09-23",
+      "verified_prefix": "previous account input"
+    },
+    "sz300054": {
+      "factor": 1.0,
+      "kind": "float_metadata",
+      "previous_session": "2026-09-23",
+      "verified_prefix": "previous account input"
+    }
+  },
   "attempts": {
     "sh000300": [
       {
-        "category": "network",
-        "provider": "Eastmoney",
-        "status": "FAILED",
-        "type": "ConnectionError"
-      },
-      {
         "provider": "Sina",
-        "rows": 5999,
+        "rows": 6000,
         "status": "OK"
       }
     ],
     "sh000682": [
       {
         "provider": "Sina",
-        "rows": 1632,
+        "rows": 1633,
         "status": "OK"
       }
     ],
     "sh600487": [
       {
-        "category": "data_contract",
-        "provider": "Eastmoney",
-        "status": "FAILED",
-        "type": "DataContractError"
-      },
-      {
         "provider": "Sina",
-        "rows": 5429,
+        "rows": 5430,
         "status": "OK"
       }
     ],
     "sh601869": [
       {
         "provider": "Sina",
-        "rows": 1986,
+        "rows": 1987,
         "status": "OK"
       }
     ],
     "sh603688": [
       {
         "provider": "Sina",
-        "rows": 2892,
+        "rows": 2893,
         "status": "OK"
       }
     ],
     "sh603986": [
       {
         "provider": "Sina",
-        "rows": 2247,
+        "rows": 2248,
         "status": "OK"
       }
     ],
@@ -64,42 +66,42 @@
     "sh688008": [
       {
         "provider": "Sina",
-        "rows": 1743,
+        "rows": 1744,
         "status": "OK"
       }
     ],
     "sh688012": [
       {
         "provider": "Sina",
-        "rows": 1734,
+        "rows": 1735,
         "status": "OK"
       }
     ],
     "sh688019": [
       {
         "provider": "Sina",
-        "rows": 1743,
+        "rows": 1744,
         "status": "OK"
       }
     ],
     "sh688037": [
       {
         "provider": "Sina",
-        "rows": 1641,
+        "rows": 1642,
         "status": "OK"
       }
     ],
     "sh688041": [
       {
         "provider": "Sina",
-        "rows": 989,
+        "rows": 990,
         "status": "OK"
       }
     ],
     "sh688072": [
       {
         "provider": "Sina",
-        "rows": 1067,
+        "rows": 1068,
         "status": "OK"
       }
     ],
@@ -113,21 +115,21 @@
     "sh688082": [
       {
         "provider": "Sina",
-        "rows": 1178,
+        "rows": 1179,
         "status": "OK"
       }
     ],
     "sh688110": [
       {
         "provider": "Sina",
-        "rows": 1159,
+        "rows": 1160,
         "status": "OK"
       }
     ],
     "sh688120": [
       {
         "provider": "Sina",
-        "rows": 1046,
+        "rows": 1047,
         "status": "OK"
       }
     ],
@@ -141,28 +143,28 @@
     "sh688146": [
       {
         "provider": "Sina",
-        "rows": 829,
+        "rows": 830,
         "status": "OK"
       }
     ],
     "sh688200": [
       {
         "provider": "Sina",
-        "rows": 1605,
+        "rows": 1606,
         "status": "OK"
       }
     ],
     "sh688233": [
       {
         "provider": "Sina",
-        "rows": 1602,
+        "rows": 1603,
         "status": "OK"
       }
     ],
     "sh688256": [
       {
         "provider": "Sina",
-        "rows": 1502,
+        "rows": 1503,
         "status": "OK"
       }
     ],
@@ -176,14 +178,14 @@
     "sh688268": [
       {
         "provider": "Sina",
-        "rows": 1636,
+        "rows": 1637,
         "status": "OK"
       }
     ],
     "sh688300": [
       {
         "provider": "Sina",
-        "rows": 1665,
+        "rows": 1666,
         "status": "OK"
       }
     ],
@@ -197,14 +199,14 @@
     "sh688347": [
       {
         "provider": "Sina",
-        "rows": 751,
+        "rows": 752,
         "status": "OK"
       }
     ],
     "sh688361": [
       {
         "provider": "Sina",
-        "rows": 815,
+        "rows": 816,
         "status": "OK"
       }
     ],
@@ -218,7 +220,7 @@
     "sh688498": [
       {
         "provider": "Sina",
-        "rows": 912,
+        "rows": 913,
         "status": "OK"
       }
     ],
@@ -232,35 +234,35 @@
     "sh688766": [
       {
         "provider": "Sina",
-        "rows": 1224,
+        "rows": 1225,
         "status": "OK"
       }
     ],
     "sz000636": [
       {
         "provider": "Sina",
-        "rows": 6231,
+        "rows": 6232,
         "status": "OK"
       }
     ],
     "sz002281": [
       {
         "provider": "Sina",
-        "rows": 4086,
+        "rows": 4087,
         "status": "OK"
       }
     ],
     "sz002371": [
       {
         "provider": "Sina",
-        "rows": 3935,
+        "rows": 3936,
         "status": "OK"
       }
     ],
     "sz002384": [
       {
         "provider": "Sina",
-        "rows": 3788,
+        "rows": 3789,
         "status": "OK"
       }
     ],
@@ -274,7 +276,7 @@
     "sz002409": [
       {
         "provider": "Sina",
-        "rows": 3665,
+        "rows": 3666,
         "status": "OK"
       }
     ],
@@ -288,7 +290,7 @@
     "sz300054": [
       {
         "provider": "Sina",
-        "rows": 3901,
+        "rows": 3902,
         "status": "OK"
       }
     ],
@@ -302,24 +304,18 @@
     "sz300223": [
       {
         "provider": "Sina",
-        "rows": 3477,
+        "rows": 3478,
         "status": "OK"
       }
     ],
     "sz300308": [
       {
         "provider": "Sina",
-        "rows": 3347,
+        "rows": 3348,
         "status": "OK"
       }
     ],
     "sz300308:raw": [
-      {
-        "category": "network",
-        "provider": "Eastmoney",
-        "status": "FAILED",
-        "type": "ConnectionError"
-      },
       {
         "provider": "Sina",
         "rows": 2,
@@ -329,7 +325,7 @@
     "sz300394": [
       {
         "provider": "Sina",
-        "rows": 2808,
+        "rows": 2809,
         "status": "OK"
       }
     ],
@@ -343,7 +339,7 @@
     "sz300502": [
       {
         "provider": "Sina",
-        "rows": 2567,
+        "rows": 2568,
         "status": "OK"
       }
     ],
@@ -357,14 +353,14 @@
     "sz300604": [
       {
         "provider": "Sina",
-        "rows": 2285,
+        "rows": 2286,
         "status": "OK"
       }
     ],
     "sz300666": [
       {
         "provider": "Sina",
-        "rows": 2235,
+        "rows": 2236,
         "status": "OK"
       }
     ]
@@ -373,356 +369,356 @@
     "sh000300": {
       "adjustment": "raw",
       "amount_estimated": true,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 5999
+      "rows": 6000
     },
     "sh000682": {
       "adjustment": "raw",
       "amount_estimated": true,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1632
+      "rows": 1633
     },
     "sh600487": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 5429
+      "rows": 5430
     },
     "sh601869": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1986
+      "rows": 1987
     },
     "sh603688": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 2892
+      "rows": 2893
     },
     "sh603986": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 2247
+      "rows": 2248
     },
     "sh688008": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1743
+      "rows": 1744
     },
     "sh688012": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1734
+      "rows": 1735
     },
     "sh688019": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1743
+      "rows": 1744
     },
     "sh688037": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1641
+      "rows": 1642
     },
     "sh688041": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 989
+      "rows": 990
     },
     "sh688072": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1067
+      "rows": 1068
     },
     "sh688082": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1178
+      "rows": 1179
     },
     "sh688110": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1159
+      "rows": 1160
     },
     "sh688120": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1046
+      "rows": 1047
     },
     "sh688146": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 829
+      "rows": 830
     },
     "sh688200": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1605
+      "rows": 1606
     },
     "sh688233": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1602
+      "rows": 1603
     },
     "sh688256": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1502
+      "rows": 1503
     },
     "sh688268": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1636
+      "rows": 1637
     },
     "sh688300": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1665
+      "rows": 1666
     },
     "sh688347": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 751
+      "rows": 752
     },
     "sh688361": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 815
+      "rows": 816
     },
     "sh688498": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 912
+      "rows": 913
     },
     "sh688766": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 1224
+      "rows": 1225
     },
     "sz000636": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 6231
+      "rows": 6232
     },
     "sz002281": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 4086
+      "rows": 4087
     },
     "sz002371": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 3935
+      "rows": 3936
     },
     "sz002384": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 3788
+      "rows": 3789
     },
     "sz002409": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 3665
+      "rows": 3666
     },
     "sz300054": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 3901
+      "rows": 3902
     },
     "sz300223": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 3477
+      "rows": 3478
     },
     "sz300308": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 3347
+      "rows": 3348
     },
     "sz300394": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 2808
+      "rows": 2809
     },
     "sz300502": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 2567
+      "rows": 2568
     },
     "sz300604": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 2285
+      "rows": 2286
     },
     "sz300666": {
       "adjustment": "qfq",
       "amount_estimated": false,
-      "date": "2026-09-23",
+      "date": "2026-09-24",
       "provider": "Sina",
-      "rows": 2235
+      "rows": 2236
     }
   },
   "failures": {},
-  "fetched_at": "2026-09-23T17:41:17.375831+08:00",
+  "fetched_at": "2026-09-25T00:33:07.715174+08:00",
   "provider": "AkShare/multi-source",
   "quotes": {
     "sh603986": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 398.72,
-      "date": "2026-09-23",
+      "close": 383.77,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sh688072": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 730.3,
-      "date": "2026-09-23",
+      "close": 700.9,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sh688120": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 254.01,
-      "date": "2026-09-23",
+      "close": 247.17,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sh688256": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 1103.08,
-      "date": "2026-09-23",
+      "close": 1091.48,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sh688300": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 183.1,
-      "date": "2026-09-23",
+      "close": 167.8,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sh688361": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 381.32,
-      "date": "2026-09-23",
+      "close": 370.3,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sh688498": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 1734.98,
-      "date": "2026-09-23",
+      "close": 1700.03,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sz002384": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 193.0,
-      "date": "2026-09-23",
+      "close": 185.99,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sz002409": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 137.28,
-      "date": "2026-09-23",
+      "close": 132.62,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sz300054": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 71.13,
-      "date": "2026-09-23",
+      "close": 70.11,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sz300308": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 922.5,
-      "date": "2026-09-23",
+      "close": 895.86,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sz300394": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 275.4,
-      "date": "2026-09-23",
+      "close": 267.93,
+      "date": "2026-09-24",
       "provider": "Sina"
     },
     "sz300502": {
       "adjustment": "raw",
       "change_pct": null,
-      "close": 451.2,
-      "date": "2026-09-23",
+      "close": 435.0,
+      "date": "2026-09-24",
       "provider": "Sina"
     }
   }

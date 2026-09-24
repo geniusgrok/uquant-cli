@@ -1,0 +1,766 @@
+{
+  "date": "2026-09-24",
+  "decision_digest": "1386ea4c4668d8d9386e00a7bb25dc3de4f02b6223c0a7787d643122fd282527",
+  "opportunity": "RECOVERY",
+  "pending_orders": [],
+  "risk": "NORMAL",
+  "risk_summary": {
+    "active_strategic_epoch_id": "",
+    "acute_sector_evacuation": false,
+    "ai_fast_return": 0.00116563120399409,
+    "base_family_active": {
+      "breadth_structure": false,
+      "capital_damage": false,
+      "covariance_stress": false,
+      "leadership_damage": false,
+      "live_book_damage": false,
+      "market_velocity": false
+    },
+    "base_first_family_dates": {
+      "breadth_structure": "2020-02-26",
+      "covariance_stress": "2024-02-07",
+      "market_velocity": "2020-02-07"
+    },
+    "base_freeze_new_risk": false,
+    "base_target_gross_cap": 1.0,
+    "below_ma20_ratio": 0.2895424836601307,
+    "breadth20": 0.7104575163398693,
+    "breadth60": 0.3038807189542484,
+    "broad_ret120": -0.008879384600820495,
+    "broad_ret20": -0.041278955881041246,
+    "broad_ret5": -0.004711045981351303,
+    "broad_ret60": -0.07754136487032381,
+    "broad_speed": -0.024018608782448325,
+    "capital_budget_level": 0,
+    "capital_drawdown": 0.0,
+    "chronic_level": 0,
+    "combined_family_active": {
+      "breadth_structure": false,
+      "capital_damage": false,
+      "covariance_stress": false,
+      "leadership_damage": false,
+      "live_book_damage": false,
+      "market_velocity": false
+    },
+    "combined_family_vote_count": 0,
+    "configured_user_universe_size": 13,
+    "core_allocation": {
+      "as_of": "2026-09-24",
+      "final_freeze_new_risk": false,
+      "final_gross_cap": 1.0,
+      "freeze_new_risk": false,
+      "gross_cap": 1.0,
+      "late_fill_order_ids": [],
+      "ordinary_market": {
+        "as_of": "2026-09-24",
+        "confirmed": false,
+        "credible_symbols": [],
+        "impulse": false,
+        "leader_cycle_armed": false,
+        "leader_cycle_confirmation": {
+          "observed": 0,
+          "required": 3
+        },
+        "mature_entry_open": false,
+        "missing_market_fields": [],
+        "persistent_mature_entry_open": false,
+        "persistent_maturity": {
+          "observed": 0,
+          "required": 5,
+          "witnesses": []
+        },
+        "repair_mature_entry_open": false,
+        "settled_strategic_rotation_open": false,
+        "tech_ret120": 0.38760932136987103
+      },
+      "planning_scope": "ALLOCATOR_PROPOSAL",
+      "scope": "FINAL_DECISION",
+      "symbols": {
+        "sh603986": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.206018090202151
+        },
+        "sh688072": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.7905661616269875
+        },
+        "sh688120": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.5929605821821922
+        },
+        "sh688256": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.4979976481021525
+        },
+        "sh688300": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.4981899550718816
+        },
+        "sh688361": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.891082703585252
+        },
+        "sh688498": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.8865340812777145
+        },
+        "sz002384": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.46237064345209855
+        },
+        "sz002409": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.2333456334317325
+        },
+        "sz300054": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.38433139471612054
+        },
+        "sz300308": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.45224462316235137
+        },
+        "sz300394": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.7887159755736156
+        },
+        "sz300502": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.6103349689107364
+        }
+      },
+      "unreserved_cash_after": 1.0,
+      "unreserved_cash_before": 1.0
+    },
+    "decision_input_identity": {
+      "as_of": "2026-09-24",
+      "code_hash": "a8b10880b15f8d0305f17e2acecc5939af3fc3e95a9ddb2803f753536652d7ee",
+      "data_hash": "767488a496d7d62d07fcdc546feabe17ed41dabc6f58f2e095343194650c0806"
+    },
+    "declining_ratio": 0.6539624183006536,
+    "deployed_drawdown": 0.0,
+    "effective_config_sha256": "4d9c3495556d78e24f629355bb2bedbd4f3e823a53cf30499c9f18e04d53fda6",
+    "evidence_families": {
+      "breadth_structure": [
+        "sector_breadth_shock",
+        "below_ma20_structure",
+        "multi_industry_sync"
+      ],
+      "capital_damage": [
+        "capital_damage"
+      ],
+      "covariance_stress": [
+        "correlation_shock",
+        "volatility_shock"
+      ],
+      "leadership_damage": [
+        "leader_failure",
+        "anchor_break"
+      ],
+      "live_book_damage": [
+        "live_book_damage"
+      ],
+      "market_velocity": [
+        "index_velocity"
+      ]
+    },
+    "factor_profile": "CHOPPY",
+    "family_vote_count": 0,
+    "family_votes": {
+      "breadth_structure": false,
+      "capital_damage": false,
+      "covariance_stress": false,
+      "leadership_damage": false,
+      "live_book_damage": false,
+      "market_velocity": false
+    },
+    "first_base_date": {},
+    "first_sentinel_date": null,
+    "flat_book_capital_repair": {
+      "account_identity": "",
+      "capital_budget_level": 0,
+      "config_identity": "",
+      "first_observed_session": "",
+      "healthy_session_count": 0,
+      "last_counted_session": "",
+      "last_observed_session": "",
+      "last_ready_session": "",
+      "last_reset_session": "",
+      "predicate_results": [],
+      "rejection_reasons": [],
+      "repair_episode_id": "",
+      "repair_target_level": 0,
+      "required_healthy_sessions": 0,
+      "reset_reason": "",
+      "risk_reference_universe_identity": "",
+      "status": "BLOCKED"
+    },
+    "freeze_new_risk": false,
+    "group_balanced_below_ma20_ratio": 0.25555555555555554,
+    "group_balanced_breadth20": 0.7444444444444445,
+    "group_balanced_breadth60": 0.3430555555555556,
+    "group_balanced_declining_ratio": 0.6902777777777778,
+    "held_damage_ratio": 0.0,
+    "held_repair_ratio": 0.0,
+    "independent_damage": false,
+    "leader_failure_ratio": 0.0,
+    "leader_ranking": [
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "equipment",
+        "mature": false,
+        "score": 0.891082703585252,
+        "symbol": "sh688361"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "packaging",
+        "mature": false,
+        "score": 0.8865340812777145,
+        "symbol": "sh688498"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "equipment",
+        "mature": false,
+        "score": 0.7905661616269875,
+        "symbol": "sh688072"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "optical",
+        "mature": false,
+        "score": 0.7887159755736156,
+        "symbol": "sz300394"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "optical",
+        "mature": false,
+        "score": 0.6103349689107364,
+        "symbol": "sz300502"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "equipment",
+        "mature": false,
+        "score": 0.5929605821821922,
+        "symbol": "sh688120"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "materials",
+        "mature": false,
+        "score": 0.4981899550718816,
+        "symbol": "sh688300"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "compute",
+        "mature": false,
+        "score": 0.4979976481021525,
+        "symbol": "sh688256"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "unknown",
+        "mature": false,
+        "score": 0.46237064345209855,
+        "symbol": "sz002384"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "optical",
+        "mature": false,
+        "score": 0.45224462316235137,
+        "symbol": "sz300308"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "equipment",
+        "mature": false,
+        "score": 0.38433139471612054,
+        "symbol": "sz300054"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "pcb",
+        "mature": false,
+        "score": 0.2333456334317325,
+        "symbol": "sz002409"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "memory",
+        "mature": false,
+        "score": 0.206018090202151,
+        "symbol": "sh603986"
+      }
+    ],
+    "median_correlation": 0.622415456307598,
+    "name_weighted_below_ma20_ratio": 0.3235294117647059,
+    "name_weighted_breadth20": 0.6764705882352942,
+    "name_weighted_breadth60": 0.2647058823529412,
+    "name_weighted_declining_ratio": 0.6176470588235294,
+    "operating_drawdown": 0.0,
+    "reasons": [],
+    "reduction_level": 0,
+    "reference_coverage": 1.0,
+    "reference_details": {
+      "expected_count": 34.0,
+      "group_count": 12.0,
+      "visible_count": 34.0
+    },
+    "reference_dispersion20": 0.05658260170832373,
+    "reference_expected_symbols": [
+      "sh600487",
+      "sh601869",
+      "sh603688",
+      "sh603986",
+      "sh688008",
+      "sh688012",
+      "sh688019",
+      "sh688037",
+      "sh688041",
+      "sh688072",
+      "sh688082",
+      "sh688110",
+      "sh688120",
+      "sh688146",
+      "sh688200",
+      "sh688233",
+      "sh688256",
+      "sh688268",
+      "sh688300",
+      "sh688347",
+      "sh688361",
+      "sh688498",
+      "sh688766",
+      "sz000636",
+      "sz002281",
+      "sz002371",
+      "sz002409",
+      "sz300054",
+      "sz300223",
+      "sz300308",
+      "sz300394",
+      "sz300502",
+      "sz300604",
+      "sz300666"
+    ],
+    "reference_global_strength": 0.4952716503267974,
+    "reference_industry_strength": {
+      "compute": 0.5645833333333334,
+      "datacenter": 0.5647916666666667,
+      "design": 0.619375,
+      "equipment": 0.48908333333333337,
+      "foundry": 0.434375,
+      "materials": 0.32708333333333334,
+      "memory": 0.424375,
+      "optical": 0.63825,
+      "packaging": 0.690625,
+      "passives": 0.6627083333333335,
+      "pcb": 0.22791666666666666,
+      "semiconductor": 0.33729166666666666
+    },
+    "reference_visible_groups": [
+      "compute",
+      "datacenter",
+      "design",
+      "equipment",
+      "foundry",
+      "materials",
+      "memory",
+      "optical",
+      "packaging",
+      "passives",
+      "pcb",
+      "semiconductor"
+    ],
+    "reference_visible_symbols": [
+      "sh600487",
+      "sh601869",
+      "sh603688",
+      "sh603986",
+      "sh688008",
+      "sh688012",
+      "sh688019",
+      "sh688037",
+      "sh688041",
+      "sh688072",
+      "sh688082",
+      "sh688110",
+      "sh688120",
+      "sh688146",
+      "sh688200",
+      "sh688233",
+      "sh688256",
+      "sh688268",
+      "sh688300",
+      "sh688347",
+      "sh688361",
+      "sh688498",
+      "sh688766",
+      "sz000636",
+      "sz002281",
+      "sz002371",
+      "sz002409",
+      "sz300054",
+      "sz300223",
+      "sz300308",
+      "sz300394",
+      "sz300502",
+      "sz300604",
+      "sz300666"
+    ],
+    "reversal_observations": {},
+    "risk_anchor_group_count": 0,
+    "risk_anchor_signature": "",
+    "risk_anchor_symbols": [],
+    "sector_guard_active": false,
+    "sector_guard_active_sessions": 0,
+    "sector_guard_equal_return": null,
+    "sector_guard_negative_exposure": null,
+    "sector_guard_positive_breadth": null,
+    "sector_guard_shock_count": 0,
+    "sector_guard_weighted_return": null,
+    "sector_stress_ratio": 0.16666666666666666,
+    "sentinel_assessment": {
+      "confidence": 1.0,
+      "coverage": {
+        "component_observation": 1.0,
+        "confidence": 1.0,
+        "held_industry_mapping": 1.0,
+        "missing_indices": [],
+        "new_symbols": [],
+        "reference_warmup": 1.0,
+        "stale_symbols": [],
+        "status": "READY",
+        "subindustry_coverage": 1.0
+      },
+      "date": "2026-09-24",
+      "evidence_families": [],
+      "first_evidence_date": null,
+      "freeze_new_risk": false,
+      "level": "NORMAL",
+      "metrics": {
+        "broad_fast_return": -0.004711045981351303,
+        "broad_medium_return": -0.041278955881041246,
+        "capital_drawdown": 0.0,
+        "confirmation_history_trusted": 0.0,
+        "equal_subindustry_below_ma20": 0.25555555555555554,
+        "equal_subindustry_downside_breadth": 0.6902777777777778,
+        "equal_subindustry_fast_return": -0.002663195781332057,
+        "evidence_confirmation_days": 0.0,
+        "held_downside_breadth": 0.0,
+        "held_fast_return": 0.0,
+        "index_relative_speed": 0.01691569174486629,
+        "latest_visible_ordinal": 739883.0,
+        "leader_below_ma20": 0.0,
+        "leader_fast_return": 0.0,
+        "median_correlation": 0.5781357130699746,
+        "name_weighted_fast_return": 0.00116563120399409,
+        "synchronized_subindustry_damage": 0.0,
+        "tech_fast_return": 0.012204645763514987,
+        "tech_medium_return": -0.03622293449747083,
+        "volatility_ratio": 0.8859695556303709
+      },
+      "reasons": [
+        "no independent risk family triggered"
+      ],
+      "suggested_gross_cap": null,
+      "weakest_subindustries": [
+        "advanced_packaging",
+        "datacenter",
+        "materials"
+      ]
+    },
+    "sentinel_bull_silent": false,
+    "sentinel_causal_active_families": [],
+    "sentinel_causal_confidence": 1.0,
+    "sentinel_causal_confirmation_authority_enabled": false,
+    "sentinel_causal_confirmation_days": 0,
+    "sentinel_causal_confirmation_history_trusted": true,
+    "sentinel_causal_confirmed_since": null,
+    "sentinel_causal_coverage_status": "READY",
+    "sentinel_causal_earlier_families": [],
+    "sentinel_causal_effective_level": "NORMAL",
+    "sentinel_causal_incremental_families": [],
+    "sentinel_causal_observed_level": "NORMAL",
+    "sentinel_causal_reasons": [
+      "no independent risk family triggered"
+    ],
+    "sentinel_causal_repair_days": 7,
+    "sentinel_causal_trust_reasons": [],
+    "sentinel_causal_weakest_subindustries": [
+      "advanced_packaging",
+      "datacenter",
+      "materials"
+    ],
+    "sentinel_confirmation_days": 0,
+    "sentinel_confirmation_history_trusted": false,
+    "sentinel_earlier_families": [],
+    "sentinel_earlier_supported": false,
+    "sentinel_family_active": {
+      "breadth_structure": false,
+      "capital_damage": false,
+      "covariance_stress": false,
+      "leadership_damage": false,
+      "live_book_damage": false,
+      "market_velocity": false
+    },
+    "sentinel_first_family_dates": {
+      "breadth_structure": "2020-03-20",
+      "covariance_stress": "2024-09-30",
+      "market_velocity": "2020-03-20"
+    },
+    "sentinel_freeze_new_risk": false,
+    "sentinel_incremental": false,
+    "sentinel_incremental_families": [],
+    "sentinel_mode": "FREEZE_ONLY",
+    "sentinel_repair_days_required": 3,
+    "sentinel_severe_direct": false,
+    "severity": "NORMAL",
+    "shock_state": "NONE",
+    "strategic_candidate_signature": "",
+    "strategic_cash_rearm": {
+      "authorization_id": "",
+      "authorized": false,
+      "authorized_session": "",
+      "candidate_symbol": "",
+      "capital_budget_level": 0,
+      "consumed_grant_id": "",
+      "consumed_order": null,
+      "observed_session": "",
+      "point_in_time_industry_identity": "",
+      "predicate_results": [],
+      "qualification_evidence_sha256": "",
+      "qualification_quorum": "",
+      "qualification_ready": false,
+      "qualification_reference_universe_identity": "",
+      "qualification_route": "",
+      "qualification_signature": "",
+      "rejection_reasons": [],
+      "repair_episode_id": "",
+      "risk_reference_universe_identity": "",
+      "route_consistent_absolute_quality": false,
+      "status": "OBSERVING",
+      "tradable_universe_identity": ""
+    },
+    "strategic_cohort_active": false,
+    "strategic_current_gross": 0,
+    "strategic_damage_guard": false,
+    "strategic_epoch": 0,
+    "strategic_epochs": [],
+    "strategic_grant": null,
+    "strategic_guard_level2_overlay": false,
+    "strategic_qualification": {
+      "candidate_invalidation_reason": "absolute_qualification_failed",
+      "candidate_symbol": "",
+      "candidate_symbols": [],
+      "deployment_block_reason": "qualification_not_ready",
+      "deployment_blocked": true,
+      "evidence_family_status": {},
+      "qualification_evidence_sha256": "",
+      "qualification_last_observed_session": "",
+      "qualification_quorum": "",
+      "qualification_ready": false,
+      "qualification_route": "",
+      "qualification_signature": "",
+      "qualification_streak": 0,
+      "unavailable_reference_symbols": []
+    },
+    "strategic_successor_qualification": {
+      "candidate_invalidation_reason": "",
+      "candidate_symbol": "",
+      "candidate_symbols": [],
+      "deployment_block_reason": "",
+      "deployment_blocked": false,
+      "evidence_family_status": {},
+      "qualification_evidence_sha256": "",
+      "qualification_last_observed_session": "",
+      "qualification_quorum": "",
+      "qualification_ready": false,
+      "qualification_route": "",
+      "qualification_signature": "",
+      "qualification_streak": 0,
+      "unavailable_reference_symbols": []
+    },
+    "strategic_universe_identities": {
+      "qualification_reference": "f1d2c0b1736706c499be80aad0afeb0f44a9672556c2c21cec040aa38a11482e",
+      "risk_reference": "764a65e9838280570a1c95121a1ce2e893ccd0604b7bb0cf6ed524432ddfc1da",
+      "tradable": "7bb6aa092126757e3a471841de7891bfd3c50f52bad0b31c56e7435c58ede31c"
+    },
+    "system_gross_cap": 1.0,
+    "target_gross_cap": 1.0,
+    "tech_ret120": 0.38760932136987103,
+    "tech_ret20": -0.03622293449747083,
+    "tech_ret5": 0.012204645763514987,
+    "tech_ret60": -0.1882062592702919,
+    "tech_speed": 0.012204645763514987,
+    "transition_damage": 0.4149290426051587,
+    "trend_health": 0.6533191358019141,
+    "universe_size_is_diagnostic_only": true,
+    "volatility_ratio": 0.5836245494544842,
+    "votes": 0
+  },
+  "target_gross": 0,
+  "target_k": 0,
+  "targets": []
+}

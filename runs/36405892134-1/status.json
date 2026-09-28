@@ -2,7 +2,6 @@
   "actual_market_date": null,
   "calendar_source": "akshare/Sina",
   "checked_at": "2026-09-28T17:49:27.242931+08:00",
-  "events_path": "runs/36405892134-1/events.json",
   "failure": {
     "reason": "MARKET_INPUT_UNAVAILABLE",
     "stage": "MARKET_DATA",
@@ -11,7 +10,6 @@
   "failure_summary": "1项行情未通过校验（接口返回不完整1项）；未使用旧数据替代。",
   "finished_at": "2026-09-28T17:50:36.802339+08:00",
   "previous_session": "2026-09-24",
-  "record_path": "runs/36405892134-1/status.json",
   "requested_date": "2026-09-28",
   "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/36405892134",
   "runner_sha": "85216ac1d7e0ad871b8479169e0f7caccf5e8f14",

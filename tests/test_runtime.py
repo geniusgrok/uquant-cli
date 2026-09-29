@@ -502,6 +502,8 @@ def test_refresh_extends_verified_raw_prefix_and_uses_exchange_preclose(tmp_path
                         'low': [9.], 'close': [10.], 'preclose': [9.5], 'volume': [1000.],
                         'amount': [10000.], 'volume_unit': ['shares'], 'special_treatment': [0]})
     old.to_csv(base / 'sz300308.csv', index=False)
+    for index in ('sh000300', 'sh000682'):
+        old.to_csv(base / (index + '.csv'), index=False)
     (base / 'CORPORATE_ACTIONS.json').write_text('[]')
     (base / 'DATA_MANIFEST.json').write_text(json.dumps({'snapshot_id': 'base', 'price_basis': 'raw',
         'start': '2014-01-01', 'end': '2026-09-24', 'suspended_dates': {'sz300308': []}}))

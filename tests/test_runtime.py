@@ -1,4 +1,5 @@
 import copy
+import json
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -271,6 +272,47 @@ def test_observer_code_update_preserves_account_before_decision(tmp_path):
             daily.compute(tmp_path, work, {"target_date": "2026-09-24"},
                           {"config_sha256": config_fingerprint(DEFAULT_CONFIG)})
     assert economic_state_sha256(load_account(work / "account_before.json")) == before
+
+
+def test_observer_schema_upgrade_preserves_verified_previous_account(tmp_path):
+    from types import SimpleNamespace
+    from uquant.account import load_account, save_account
+    from uquant.config import DEFAULT_CONFIG, config_fingerprint
+    from uquant.engine import code_fingerprint
+    from uquant.types import ACCOUNT_SCHEMA_VERSION, AccountState
+
+    account = AccountState.empty(DEFAULT_CONFIG.initial_cash)
+    account.code_hash = "previous-production-code"
+    account.data_hash = "previous-market-data"
+    source = tmp_path / "state/account.json"
+    source.parent.mkdir()
+    save_account(account, source)
+    payload = json.loads(source.read_text())
+    payload["schema_version"] = 8
+    for name in ("account_revision", "broker_binding", "broker_snapshots",
+                 "external_cash_flows", "corporate_actions", "receivables", "dividend_tax_lots"):
+        payload.pop(name, None)
+    source.write_text(json.dumps(payload))
+    old_bytes = source.read_bytes()
+    work = tmp_path / "work"
+    work.mkdir()
+
+    class ReachedDecision(Exception):
+        pass
+
+    def decide(*, symbols, as_of, account):
+        assert account.schema_version == ACCOUNT_SCHEMA_VERSION
+        assert account.cash == DEFAULT_CONFIG.initial_cash and not account.positions
+        assert account.code_hash == code_fingerprint()
+        assert account.account_migrations[-1]["migration_type"] == "schema_upgrade"
+        raise ReachedDecision
+
+    with patch("uquant.engine.ProductionEngine", return_value=SimpleNamespace(decide=decide)):
+        with pytest.raises(ReachedDecision):
+            daily.compute(tmp_path, work, {"target_date": "2026-09-28"},
+                          {"config_sha256": config_fingerprint(DEFAULT_CONFIG)})
+    assert source.read_bytes() == old_bytes
+    assert load_account(work / "account_before.json").schema_version == ACCOUNT_SCHEMA_VERSION
 
 
 def test_market_request_retries_transient_failures_only(monkeypatch):

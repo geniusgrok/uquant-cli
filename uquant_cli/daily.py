@@ -109,7 +109,8 @@ def prior(root: Path, context: dict) -> dict | None:
 
 
 def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> dict:
-    from uquant.account import load_account, migrate_code_identity, save_account
+    from uquant.account import (UnsupportedAccountSchemaError, load_account,
+                                migrate_account_schema, migrate_code_identity, save_account)
     from uquant.config import DEFAULT_CONFIG, config_fingerprint
     from uquant.engine import ProductionEngine, code_fingerprint
     from uquant.types import AccountState
@@ -121,9 +122,16 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
         account.account_migrations.append({"migration_type": "configuration_binding",
             "effective_config_sha256": config_fingerprint(DEFAULT_CONFIG)})
     else:
-        account = load_account(root / "state/account.json")
         if previous["config_sha256"] != config_fingerprint(DEFAULT_CONFIG):
             raise RuntimeError("observer configuration changed")
+        source = root / "state/account.json"
+        try:
+            account = load_account(source)
+        except UnsupportedAccountSchemaError:
+            # Migrate a copy: the verified previous receipt remains untouched until publication.
+            migrated = work / "account_before.json"
+            shutil.copyfile(source, migrated)
+            account = migrate_account_schema(migrated, code_hash=code_fingerprint())
     # Only this explicitly non-executing observer state may ever be published publicly.
     if account.positions or getattr(account, "broker_as_of", ""):
         raise RuntimeError("real or executed account input is not authorized for public publication")

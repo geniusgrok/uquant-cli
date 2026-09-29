@@ -28,7 +28,8 @@ def preserve(root: Path) -> str:
                 relative = path.relative_to(candidate).as_posix()
                 if status["status"] in {"COMPLETE", "PARTIAL", "REUSED"} and relative != "status.json":
                     continue  # Already preserved atomically under reports/ and inputs/.
-                is_input = (relative == "inputs/audit.json" or
+                is_input = (relative in {"inputs/audit.json", "inputs/DATA_MANIFEST.json",
+                                         "inputs/CORPORATE_ACTIONS.json"} or
                             re.fullmatch(r"inputs/(?:sh|sz)[0-9]{6}(?:\.raw)?\.csv", relative))
                 if relative not in allowed_files and not is_input:
                     raise ValueError("unapproved runtime output path")

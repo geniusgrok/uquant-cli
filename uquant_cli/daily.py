@@ -245,13 +245,21 @@ def main() -> int:
         return 0
     except Exception as exc:
         # Do not publish traceback source lines, arbitrary exception text, or process environments.
+        public_location = None
+        trace = exc.__traceback__
+        while trace:
+            source = Path(trace.tb_frame.f_code.co_filename).resolve()
+            if source.parent == Path(__file__).resolve().parent:
+                public_location = f"{source.name}:{trace.tb_lineno}"
+            trace = trace.tb_next
         known_failures = {"historical data prefix differs from account state": "DATA_PREFIX_CHANGED",
                           "production code hash differs from account state": "CODE_IDENTITY_CHANGED",
                           "unreconciled production claim": "CLAIM_UNRECONCILED"}
         result = {**metadata, "status": "FAILED", "actual_market_date": None,
                   "failure": {"stage": getattr(exc, "stage", stage), "type": type(exc).__name__,
                               "reason": ("MARKET_INPUT_UNAVAILABLE" if isinstance(exc, LiveInputError)
-                                         else known_failures.get(str(exc), "UNCLASSIFIED"))},
+                                         else known_failures.get(str(exc), "UNCLASSIFIED")),
+                              "public_location": public_location},
                   "finished_at": datetime.now(SHANGHAI).isoformat()}
         if getattr(exc, "safe_summary", None):
             result["failure_summary"] = exc.safe_summary

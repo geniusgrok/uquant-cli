@@ -363,6 +363,26 @@ def test_market_request_retries_transient_failures_only(monkeypatch):
         market._retry_request(invalid_response)
     assert calls == 1
 
+    calls = 0
+    def late_quote():
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            raise ValueError("target raw close missing")
+        return "verified"
+    assert market._retry_request(late_quote) == "verified"
+    assert calls == 3
+
+    calls = 0
+    def delayed_login():
+        nonlocal calls
+        calls += 1
+        if calls < 3:
+            raise RuntimeError("baostock login failed")
+        return "connected"
+    assert market._retry_request(delayed_login) == "connected"
+    assert calls == 3
+
 
 def test_source_failover_validates_prices_and_units():
     import pandas as pd

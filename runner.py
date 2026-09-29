@@ -23,11 +23,8 @@ def main() -> int:
     env["PYTHONPATH"] = str(CLI_ROOT)
     try:
         source, env = prepare(root, events)
-        guard = ["python", "-m", "tools.cloud_guard", "--root", str(root / "journal")]
-        if call([*guard, "inspect"], source, env, events, "JOURNAL_INSPECT"):
-            raise RuntimeError("execution journal not clear")
-        status = call([*guard, "run", "--name", "daily-scan", "--timeout", "720", "--",
-            str(root / "venv/bin/python"), "-m", "uquant_cli.daily", "--root", str(root / "operation")],
+        status = call([str(root / "venv/bin/python"), "-m", "uquant_cli.daily",
+                       "--root", str(root / "operation")],
             source, env, events, "DAILY_SCAN", timeout=780)
     except Exception as exc:
         events.append({"stage": "BOOTSTRAP", "error_type": type(exc).__name__})

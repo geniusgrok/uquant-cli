@@ -483,26 +483,60 @@ def test_provider_deadline_interrupts_stalled_call():
     assert signal.getitimer(signal.ITIMER_REAL)[0] == 0
 
 
-def test_refresh_reuses_persisted_sources_and_accepts_single_day_raw_quote(tmp_path, monkeypatch):
-    import sys
-    from types import SimpleNamespace
-    from unittest.mock import Mock
+def test_refresh_extends_verified_raw_prefix_and_uses_exchange_preclose(tmp_path, monkeypatch):
+    import json
+    import uquant.data
+    import uquant.data_update
+    import uquant.engine
     import pandas as pd
 
-    frame = pd.DataFrame({'date': ['2026-09-22', '2026-09-23'], 'open': [10, 11],
-                          'high': [12, 13], 'low': [9, 10], 'close': [11, 12],
-                          'volume': [1000, 2000], 'amount': [11000, 24000]})
-    eastmoney = Mock(side_effect=ConnectionError('must not request an unneeded source'))
-    ak = SimpleNamespace(stock_zh_a_hist=eastmoney,
-                         stock_zh_a_daily=lambda **kw: frame if kw['adjust'] else frame.iloc[-1:],
-                         stock_zh_a_hist_tx=eastmoney)
-    monkeypatch.setitem(sys.modules, 'akshare', ak)
-    monkeypatch.setitem(sys.modules, 'uquant.engine', SimpleNamespace(INDEX_SYMBOLS=(), REFERENCE_UNIVERSE=()))
+    base = tmp_path / 'base'
+    base.mkdir()
+    old = pd.DataFrame({'date': ['2026-09-24'], 'open': [10.], 'high': [11.],
+                        'low': [9.], 'close': [10.], 'preclose': [9.5], 'volume': [1000.],
+                        'amount': [10000.], 'volume_unit': ['shares'], 'special_treatment': [0]})
+    old.to_csv(base / 'sz300308.csv', index=False)
+    (base / 'CORPORATE_ACTIONS.json').write_text('[]')
+    (base / 'DATA_MANIFEST.json').write_text(json.dumps({'snapshot_id': 'base', 'price_basis': 'raw',
+        'start': '2014-01-01', 'end': '2026-09-24', 'suspended_dates': {'sz300308': []}}))
+
+    class FakeStore:
+        def __init__(self, root):
+            self.root = root
+            self.snapshot_manifest = json.loads((root / 'DATA_MANIFEST.json').read_text())
+        def verify_file(self, name):
+            assert (self.root / name).exists()
+        def load(self, symbol, as_of=None):
+            frame = pd.read_csv(self.root / (symbol + '.csv')).set_index('date')
+            frame.index = pd.to_datetime(frame.index)
+            return frame.loc[:as_of] if as_of else frame
+
+    class FakeProvider:
+        def stock_daily(self, symbol, start, end):
+            assert start == '2026-09-24' and end == '2026-09-28'
+            return pd.concat([old, old.assign(date='2026-09-28', close=11., preclose=10.)]), []
+        def dividends(self, symbol, start, end):
+            return []
+
+    def update_snapshot(*, output_root, base_dir, symbols, start, end, provider):
+        assert base_dir == base and symbols == {'sz300308'}
+        extended, _ = provider.stock_daily('sz300308', start, end)
+        target = output_root / 'raw-test'
+        target.mkdir(parents=True)
+        extended.to_csv(target / 'sz300308.csv', index=False)
+        (target / 'CORPORATE_ACTIONS.json').write_text('[]')
+        (target / 'DATA_MANIFEST.json').write_text(json.dumps({'snapshot_id': 'raw-test', 'price_basis': 'raw'}))
+        return target
+
+    monkeypatch.setattr(uquant.data, 'DataStore', FakeStore)
+    monkeypatch.setattr(uquant.data_update, 'BaostockProvider', FakeProvider)
+    monkeypatch.setattr(uquant.data_update, 'update_snapshot', update_snapshot)
+    monkeypatch.setattr(uquant.engine, 'INDEX_SYMBOLS', ())
+    monkeypatch.setattr(uquant.engine, 'REFERENCE_UNIVERSE', ())
     monkeypatch.setattr(market, 'SYMBOLS', ('sz300308',))
-    audit = market.refresh(tmp_path / 'inputs', '2026-09-23', '2026-09-22', prior_audit={
-        'coverage': {'sz300308': {'provider': 'Sina'}}, 'quotes': {'sz300308': {'provider': 'Sina'}}})
+    audit = market.refresh(tmp_path / 'inputs', '2026-09-28', '2026-09-24', prior_root=base)
     assert not audit['failures']
-    assert audit['coverage']['sz300308']['provider'] == 'Sina'
-    assert audit['quotes']['sz300308']['close'] == 12
-    assert audit['quotes']['sz300308']['change_pct'] is None
-    eastmoney.assert_not_called()
+    assert audit['quotes']['sz300308']['provider'] == 'baostock'
+    assert audit['quotes']['sz300308']['close'] == 11
+    assert audit['quotes']['sz300308']['change_pct'] == pytest.approx(10)
+    assert pd.read_csv(tmp_path / 'inputs/sz300308.csv').iloc[0]['close'] == 10

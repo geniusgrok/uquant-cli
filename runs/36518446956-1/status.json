@@ -2,7 +2,6 @@
   "actual_market_date": null,
   "calendar_source": "已核验的前次交易日历",
   "checked_at": "2026-09-29T11:44:24.240556+08:00",
-  "events_path": "runs/36518446956-1/events.json",
   "failure": {
     "reason": "UNCLASSIFIED",
     "stage": "STATE_AND_DECISION",
@@ -10,7 +9,6 @@
   },
   "finished_at": "2026-09-29T11:44:24.577021+08:00",
   "previous_session": "2026-09-24",
-  "record_path": "runs/36518446956-1/status.json",
   "requested_date": "2026-09-29",
   "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/36518446956",
   "runner_sha": "52b350344a32a99fc6b3da348b59b9bc817c2bf5",

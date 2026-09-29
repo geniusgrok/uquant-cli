@@ -392,6 +392,8 @@ def test_previous_float_metadata_revision_preserves_account_history(tmp_path):
                         "volume": [1000., 1100.], "amount": [71000., 79200.],
                         "outstanding_share": [100000., 100000.], "turnover": [.01, .011]})
     new = old.copy()
+    new.loc[0, "outstanding_share"] = 101000.
+    new.loc[0, "turnover"] = 1000 / 101000
     new.loc[1, "outstanding_share"] = 101000.
     new.loc[1, "turnover"] = 1100 / 101000
     new = pd.concat([new, pd.DataFrame({"date": ["2026-09-24"], "open": [72.],

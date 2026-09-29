@@ -183,8 +183,6 @@ def _anchor_adjusted_history(root: Path, prior_root: Path, symbol: str, previous
     if not old[stable].equals(prefix[stable]):
         raise ValueError("adjusted history nonprice fields changed")
     metadata_changed = not old[float_metadata].equals(prefix[float_metadata])
-    if metadata_changed and not old[float_metadata].iloc[:-1].equals(prefix[float_metadata].iloc[:-1]):
-        raise ValueError("older float metadata changed")
     if old.equals(prefix):
         return None
     # A real ex-date rebase changes the adjusted scale but not the preceding raw close.

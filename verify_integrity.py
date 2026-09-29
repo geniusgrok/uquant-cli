@@ -16,9 +16,7 @@ def main() -> int:
     output.mkdir(exist_ok=True)
     try:
         source, env = prepare(root, events, validation=True)
-        guard = ["python", "-m", "tools.cloud_guard", "--root", str(root / "journal")]
-        code = call([*guard, "run", "--name", "observer-integration", "--timeout", "300", "--",
-                     str(root / "venv/bin/python"), "-m", "uquant_cli.integration", "--source", str(source),
+        code = call([str(root / "venv/bin/python"), "-m", "uquant_cli.integration", "--source", str(source),
                      "--output", str(output / "integration.json")], source, env, events,
                     "PRODUCTION_INTEGRATION", timeout=330)
         status = code

@@ -223,6 +223,8 @@ def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = N
         raise RuntimeError("verified raw snapshot does not end at previous session")
     actions_path = base.root / "CORPORATE_ACTIONS.json"
     base.verify_file(actions_path.name)
+    for index in ("sh000300", "sh000682"):
+        base.verify_file(index + ".csv")
     actions = json.loads(actions_path.read_text())
     suspended = base.snapshot_manifest["suspended_dates"]
     live = BaostockProvider()

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import importlib
 import os
 import shutil
 import subprocess
@@ -18,6 +19,8 @@ from .store import GitStore, identity, put, read, verify
 def check(source: Path, root: Path) -> dict:
     from uquant.data import DataStore
     from uquant.engine import INDEX_SYMBOLS, REFERENCE_UNIVERSE
+
+    importlib.import_module("akshare")  # The daily market adapter must exist in this environment.
 
     # The upstream frozen research pool omits 002384. Keep all thirteen test
     # subjects: add a disclosed synthetic fixture only in this isolated test.

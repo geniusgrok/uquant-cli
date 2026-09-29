@@ -49,10 +49,14 @@ def _retry_request(operation, attempts: int = 3):
             retryable = (isinstance(exc, (TimeoutError, OSError))
                          or name in {"ConnectionError", "ConnectTimeout", "ReadTimeout",
                                      "Timeout", "DataContractError"}
+                         or (isinstance(exc, RuntimeError) and
+                             (str(exc) == "baostock login failed" or str(exc).startswith("baostock error ")))
                          or (isinstance(exc, ValueError)
                              and str(exc) in {"target close or history missing",
                                               "index target close or history missing",
-                                              "raw quote missing or duplicated"}))
+                                              "raw quote missing or duplicated",
+                                              "raw anchor missing or duplicated",
+                                              "target raw close missing"}))
             if not retryable or index + 1 == attempts:
                 raise
             pause(2**index)
@@ -227,45 +231,54 @@ def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = N
         base.verify_file(index + ".csv")
     actions = json.loads(actions_path.read_text())
     suspended = base.snapshot_manifest["suspended_dates"]
-    live = BaostockProvider()
+    root.mkdir(parents=True, exist_ok=False)
+    prepared = root.parent / "prepared-snapshot"
+    diagnostic = {"operation": "login"}
 
     class IncrementalProvider:
         name = "baostock"
 
         def stock_daily(self, symbol, start, end):
+            diagnostic.update(operation="stock_daily", symbol=symbol)
             if not (base.root / (symbol + ".csv")).exists():
-                return live.stock_daily(symbol, start, end)
+                return _retry_request(lambda: live.stock_daily(symbol, start, end))
             base.verify_file(symbol + ".csv")
             old = pd.read_csv(base.root / (symbol + ".csv"), dtype={"date": str})
             anchor = old["date"].iloc[-1]
-            fresh, halted = live.stock_daily(symbol, anchor, end)
-            matching = fresh.loc[fresh["date"] == anchor, list(STOCK_COLUMNS)]
-            if len(matching) != 1:
-                raise ValueError("raw anchor missing or duplicated")
-            pd.testing.assert_frame_equal(old.tail(1).reset_index(drop=True)[list(STOCK_COLUMNS)],
-                                          matching.reset_index(drop=True), check_dtype=False)
-            extension = fresh.loc[fresh["date"] > anchor, list(STOCK_COLUMNS)]
-            if extension.empty and day not in halted:
-                raise ValueError("target raw close missing")
+            def fetch_extension():
+                fresh, halted = live.stock_daily(symbol, anchor, end)
+                matching = fresh.loc[fresh["date"] == anchor, list(STOCK_COLUMNS)]
+                if len(matching) != 1:
+                    raise ValueError("raw anchor missing or duplicated")
+                pd.testing.assert_frame_equal(old.tail(1).reset_index(drop=True)[list(STOCK_COLUMNS)],
+                                              matching.reset_index(drop=True), check_dtype=False)
+                extension = fresh.loc[fresh["date"] > anchor, list(STOCK_COLUMNS)]
+                if extension.empty and day not in halted:
+                    raise ValueError("target raw close missing")
+                return extension, halted
+            extension, halted = _retry_request(fetch_extension)
             return pd.concat([old, extension], ignore_index=True), sorted(set(suspended.get(symbol, [])) | set(halted))
 
         def dividends(self, symbol, start, end):
+            diagnostic.update(operation="dividends", symbol=symbol)
             old = [item for item in actions if item["symbol"] == symbol]
             exists = (base.root / (symbol + ".csv")).exists()
             since = previous if exists else start
-            recent = [item for item in live.dividends(symbol, since, end)
+            recent = [item for item in _retry_request(lambda: live.dividends(symbol, since, end))
                       if item["ex_date"] > previous or not exists]
             return old + recent
 
         def index_daily(self, symbol, start, end):
-            return live.index_daily(symbol, start, end)
+            diagnostic.update(operation="index_daily", symbol=symbol)
+            return _retry_request(lambda: live.index_daily(symbol, start, end))
 
-    root.mkdir(parents=True, exist_ok=False)
-    prepared = root.parent / "prepared-snapshot"
     try:
+        live = _retry_request(BaostockProvider, attempts=4)
+        diagnostic.update(operation="snapshot")
         published = update_snapshot(output_root=prepared, base_dir=base.root,
             symbols=set(SYMBOLS) | set(REFERENCE_UNIVERSE) | set(INDEX_SYMBOLS),
             start=base.snapshot_manifest["start"], end=day, provider=IncrementalProvider())
+        diagnostic.update(operation="publish_snapshot")
         for path in published.iterdir():
             shutil.move(str(path), root / path.name)
         data = DataStore(root)
@@ -284,8 +297,9 @@ def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = N
         put(root, "audit.json", audit)
         return audit
     except Exception as exc:
+        detail = {"type": type(exc).__name__, "category": _failure_category(exc), **diagnostic}
         put(root, "audit.json", {"provider": "baostock", "target_date": day,
-            "failures": {"snapshot": {"type": type(exc).__name__, "category": _failure_category(exc)}}})
-        raise LiveInputError({"snapshot": {"type": type(exc).__name__, "category": _failure_category(exc)}}) from exc
+            "failures": {"snapshot": detail}})
+        raise LiveInputError({"snapshot": detail}) from exc
     finally:
         shutil.rmtree(prepared, ignore_errors=True)

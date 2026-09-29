@@ -112,6 +112,7 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
     from uquant.account import (UnsupportedAccountSchemaError, economic_state_sha256, load_account,
                                 migrate_account_schema, migrate_code_identity, save_account)
     from uquant.config import DEFAULT_CONFIG, config_fingerprint
+    from uquant.data import DataStore, LEGACY_ADJUSTMENT, RAW_ADJUSTMENT
     from uquant.engine import ProductionEngine, code_fingerprint
     from uquant.types import AccountState
 
@@ -150,6 +151,20 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
             "to_config_sha256": config_fingerprint(DEFAULT_CONFIG)})
         if economic_state_sha256(account) != before:
             raise RuntimeError("observer configuration migration changed economic state")
+    if previous is not None and account.data_hash:
+        old_basis = DataStore(root / "inputs").adjustment
+        if old_basis != engine.data.adjustment:
+            if (old_basis != LEGACY_ADJUSTMENT or engine.data.adjustment != RAW_ADJUSTMENT
+                    or account.positions or account.pending_orders or account.fills or account.order_ledger
+                    or account.data_hash_as_of != previous["target_date"]):
+                raise RuntimeError("observer data basis requires explicit reconciliation")
+            old_digest = account.data_hash
+            account.data_hash = engine.data.manifest(
+                account.data_hash_symbols, as_of=account.data_hash_as_of).digest
+            account.account_migrations.append({"migration_type": "raw_data_basis_rebind",
+                "as_of": account.data_hash_as_of, "from_data_hash": old_digest,
+                "to_data_hash": account.data_hash,
+                "source_snapshot": engine.data.snapshot_manifest["snapshot_id"]})
     save_account(account, work / "account_before.json")
     decision = engine.decide(symbols=SYMBOLS, as_of=day, account=account)
     account.pending_orders = list(decision.pending_orders)
@@ -166,7 +181,7 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
         "observer_start": previous["observer_start"] if previous else day,
         "initial_cash": previous["initial_cash"] if previous else DEFAULT_CONFIG.initial_cash,
         "economic_code_hash": account.code_hash, "config_sha256": config_fingerprint(DEFAULT_CONFIG),
-        "data_manifest": engine.data.manifest(account.data_hash_symbols, source="live-akshare", as_of=day).to_dict(),
+        "data_manifest": engine.data.manifest(account.data_hash_symbols, source="live-baostock", as_of=day).to_dict(),
         "finished_at": datetime.now(SHANGHAI).isoformat(),
         "signals": signals(raw, read(work, "inputs/audit.json")["quotes"])}
     result["comparison"] = compare(result, previous)

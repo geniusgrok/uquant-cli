@@ -66,6 +66,8 @@ jobs:
             ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/account_before.json
             ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/account_after.json
             ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/inputs/audit.json
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/inputs/DATA_MANIFEST.json
+            ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/inputs/CORPORATE_ACTIONS.json
             ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/inputs/sh*.csv
             ${{ runner.temp }}/uquant-cli-${{ github.run_id }}-${{ github.run_attempt }}/operation/publishable/inputs/sz*.csv
           if-no-files-found: warn

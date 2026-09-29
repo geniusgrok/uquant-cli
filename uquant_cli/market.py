@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import importlib
+import json
 import math
+import os
+import shutil
 import signal
 from contextlib import contextmanager
 from collections import Counter
@@ -207,100 +210,82 @@ def _anchor_adjusted_history(root: Path, prior_root: Path, symbol: str, previous
 
 def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = None,
             prior_root: Path | None = None) -> dict:
+    """Extend the verified raw snapshot with the production data-update validator."""
+    from uquant.data import DataStore
+    from uquant.data_update import BaostockProvider, STOCK_COLUMNS, update_snapshot
     from uquant.engine import INDEX_SYMBOLS, REFERENCE_UNIVERSE
 
-    ak = importlib.import_module("akshare")
+    del prior_audit
+    candidate = DataStore(prior_root) if prior_root is not None and (prior_root / "DATA_MANIFEST.json").exists() else None
+    base = candidate if candidate is not None and candidate.snapshot_manifest.get("price_basis") == "raw" else DataStore(
+        Path(os.environ["UQUANT_SOURCE_DIR"]) / "data")
+    if base.snapshot_manifest.get("price_basis") != "raw" or base.snapshot_manifest.get("end") != previous:
+        raise RuntimeError("verified raw snapshot does not end at previous session")
+    actions_path = base.root / "CORPORATE_ACTIONS.json"
+    base.verify_file(actions_path.name)
+    for index in ("sh000300", "sh000682"):
+        base.verify_file(index + ".csv")
+    actions = json.loads(actions_path.read_text())
+    suspended = base.snapshot_manifest["suspended_dates"]
+    live = BaostockProvider()
+
+    class IncrementalProvider:
+        name = "baostock"
+
+        def stock_daily(self, symbol, start, end):
+            if not (base.root / (symbol + ".csv")).exists():
+                return live.stock_daily(symbol, start, end)
+            base.verify_file(symbol + ".csv")
+            old = pd.read_csv(base.root / (symbol + ".csv"), dtype={"date": str})
+            anchor = old["date"].iloc[-1]
+            fresh, halted = live.stock_daily(symbol, anchor, end)
+            matching = fresh.loc[fresh["date"] == anchor, list(STOCK_COLUMNS)]
+            if len(matching) != 1:
+                raise ValueError("raw anchor missing or duplicated")
+            pd.testing.assert_frame_equal(old.tail(1).reset_index(drop=True)[list(STOCK_COLUMNS)],
+                                          matching.reset_index(drop=True), check_dtype=False)
+            extension = fresh.loc[fresh["date"] > anchor, list(STOCK_COLUMNS)]
+            if extension.empty and day not in halted:
+                raise ValueError("target raw close missing")
+            return pd.concat([old, extension], ignore_index=True), sorted(set(suspended.get(symbol, [])) | set(halted))
+
+        def dividends(self, symbol, start, end):
+            old = [item for item in actions if item["symbol"] == symbol]
+            exists = (base.root / (symbol + ".csv")).exists()
+            since = previous if exists else start
+            recent = [item for item in live.dividends(symbol, since, end)
+                      if item["ex_date"] > previous or not exists]
+            return old + recent
+
+        def index_daily(self, symbol, start, end):
+            return live.index_daily(symbol, start, end)
+
     root.mkdir(parents=True, exist_ok=False)
-    coverage, failures, quotes, attempts = {}, {}, {}, {}
-    preferred = {"stock": None, "index": None, "raw": None}
-
-    def stock_sources(symbol, start, adjust):
-        return {
-            "Eastmoney": lambda: ak.stock_zh_a_hist(
-                symbol=symbol[2:], period="daily", adjust=adjust,
-                start_date=start.replace("-", ""), end_date=day.replace("-", ""), timeout=10),
-            "Sina": lambda: ak.stock_zh_a_daily(
-                symbol=symbol, start_date=start.replace("-", ""),
-                end_date=day.replace("-", ""), adjust=adjust),
-            "Tencent": lambda: ak.stock_zh_a_hist_tx(
-                symbol=symbol, start_date=start, end_date=day, adjust=adjust, timeout=10),
-        }
-
-    def fetch(key, symbol, providers, kind):
-        attempts[key] = []
-        saved = (prior_audit or {}).get("quotes" if kind == "raw" else "coverage", {})
-        first = saved.get(symbol, {}).get("provider") or preferred[kind]
-        frame, provider, estimated = _select_source(
-            providers, first,
-            lambda raw, name: _normalized(raw, symbol, day, name, index=kind == "index",
-                                          minimum_rows=1 if kind == "raw" else 2),
-            attempts[key])
-        preferred[kind] = provider
-        return frame, provider, estimated
-
-    def failed(key, exc):
-        failures[key] = {"type": type(exc).__name__, "category": _failure_category(exc)}
-
-    for symbol in sorted((set(SYMBOLS) | set(REFERENCE_UNIVERSE)) - set(INDEX_SYMBOLS)):
-        try:
-            frame, provider, estimated = fetch(
-                symbol, symbol, stock_sources(symbol, "2000-01-01", "qfq"), "stock")
-            frame.reset_index().to_csv(root / (symbol + ".csv"), index=False)
-            coverage[symbol] = {"date": day, "rows": len(frame), "adjustment": "qfq",
-                                "provider": provider, "amount_estimated": estimated}
-        except Exception as exc:
-            failed(symbol, exc)
-
-    for symbol in INDEX_SYMBOLS:
-        try:
-            providers = {
-                "Eastmoney": lambda: ak.stock_zh_index_daily_em(
-                    symbol="csi" + symbol[2:], start_date="20000101", end_date=day.replace("-", "")),
-                "Sina": lambda: ak.stock_zh_index_daily(symbol=symbol),
-                "Tencent": lambda: ak.stock_zh_index_daily_tx(
-                    symbol=symbol, start_date="20000101", end_date=day.replace("-", "")),
-            }
-            frame, provider, estimated = fetch(symbol, symbol, providers, "index")
-            frame.reset_index().to_csv(root / (symbol + ".csv"), index=False)
-            coverage[symbol] = {"date": day, "rows": len(frame), "adjustment": "raw",
-                                "provider": provider, "amount_estimated": estimated}
-        except Exception as exc:
-            failed(symbol, exc)
-
-    for symbol in SYMBOLS:
-        key = symbol + ":raw"
-        try:
-            frame, provider, estimated = fetch(
-                key, symbol, stock_sources(symbol, previous, ""), "raw")
+    prepared = root.parent / "prepared-snapshot"
+    try:
+        published = update_snapshot(output_root=prepared, base_dir=base.root,
+            symbols=set(SYMBOLS) | set(REFERENCE_UNIVERSE) | set(INDEX_SYMBOLS),
+            start=base.snapshot_manifest["start"], end=day, provider=IncrementalProvider())
+        for path in published.iterdir():
+            shutil.move(str(path), root / path.name)
+        data = DataStore(root)
+        quotes = {}
+        for symbol in SYMBOLS:
+            frame = data.load(symbol, as_of=day)
+            if frame.empty or str(frame.index[-1].date()) != day:
+                raise ValueError("target raw quote missing")
             row = frame.iloc[-1]
-            change = row.get("涨跌幅")
-            change = float(change) if pd.notna(change) else None
-            if change is not None and not math.isfinite(change):
-                raise ValueError("invalid daily change")
-            # 备用源未给出交易所涨跌幅时保留缺失，避免除权日按原始前收错误推算。
-            quotes[symbol] = {"date": day, "close": float(row["close"]), "change_pct": change,
-                              "adjustment": "raw", "provider": provider}
-            frame.reset_index().to_csv(root / (symbol + ".raw.csv"), index=False)
-        except Exception as exc:
-            failed(key, exc)
-
-    rebases = {}
-    if prior_root is not None and not failures:
-        for symbol in sorted(coverage):
-            if symbol in INDEX_SYMBOLS:
-                continue
-            try:
-                factor = _anchor_adjusted_history(root, prior_root, symbol, previous, day)
-                if factor is not None:
-                    rebases[symbol] = {"previous_session": previous, "factor": factor,
-                                       "kind": "float_metadata" if factor == 1 else "adjustment_scale",
-                                       "verified_prefix": "previous account input"}
-            except (ValueError, KeyError, OSError) as exc:
-                failed(symbol, exc)
-    audit = {"provider": "AkShare/multi-source", "fetched_at": datetime.now(SHANGHAI).isoformat(),
-             "coverage": coverage, "quotes": quotes, "failures": failures, "attempts": attempts}
-    audit["adjusted_history_rebases"] = rebases
-    put(root, "audit.json", audit)
-    if failures:
-        raise LiveInputError(failures)
-    return audit
+            quotes[symbol] = {"date": day, "close": float(row["close"]),
+                "change_pct": 100 * (float(row["close"]) / float(row["preclose"]) - 1),
+                "adjustment": "raw", "provider": "baostock"}
+        audit = {"provider": "baostock", "fetched_at": datetime.now(SHANGHAI).isoformat(),
+                 "base_snapshot": base.snapshot_manifest["snapshot_id"],
+                 "snapshot": data.snapshot_manifest["snapshot_id"], "quotes": quotes, "failures": {}}
+        put(root, "audit.json", audit)
+        return audit
+    except Exception as exc:
+        put(root, "audit.json", {"provider": "baostock", "target_date": day,
+            "failures": {"snapshot": {"type": type(exc).__name__, "category": _failure_category(exc)}}})
+        raise LiveInputError({"snapshot": {"type": type(exc).__name__, "category": _failure_category(exc)}}) from exc
+    finally:
+        shutil.rmtree(prepared, ignore_errors=True)

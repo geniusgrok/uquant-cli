@@ -314,6 +314,22 @@ def test_observer_schema_upgrade_preserves_verified_previous_account(tmp_path):
     assert source.read_bytes() == old_bytes
     assert load_account(work / "account_before.json").schema_version == ACCOUNT_SCHEMA_VERSION
 
+    def decide_after_config_change(*, symbols, as_of, account):
+        assert account.cash == DEFAULT_CONFIG.initial_cash and not account.positions
+        assert account.account_migrations[-1] == {
+            "migration_type": "configuration_rebind", "from_config_sha256": "previous-config",
+            "to_config_sha256": config_fingerprint(DEFAULT_CONFIG)}
+        raise ReachedDecision
+
+    with patch("uquant.engine.ProductionEngine",
+               return_value=SimpleNamespace(decide=decide_after_config_change)):
+        with pytest.raises(ReachedDecision):
+            daily.compute(tmp_path, work, {"target_date": "2026-09-28"},
+                          {"config_sha256": "previous-config"})
+    assert source.read_bytes() == old_bytes
+    assert load_account(work / "account_before.json").cash == DEFAULT_CONFIG.initial_cash
+    assert not (work / "account_before.json.lock").exists()
+
 
 def test_market_request_retries_transient_failures_only(monkeypatch):
     assert market._failure_category(FileNotFoundError("missing previous input")) == "data_contract"

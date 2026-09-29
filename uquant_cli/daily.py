@@ -109,7 +109,7 @@ def prior(root: Path, context: dict) -> dict | None:
 
 
 def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> dict:
-    from uquant.account import (UnsupportedAccountSchemaError, load_account,
+    from uquant.account import (UnsupportedAccountSchemaError, economic_state_sha256, load_account,
                                 migrate_account_schema, migrate_code_identity, save_account)
     from uquant.config import DEFAULT_CONFIG, config_fingerprint
     from uquant.engine import ProductionEngine, code_fingerprint
@@ -117,31 +117,40 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
 
     day = metadata["target_date"]
     engine = ProductionEngine(work / "inputs")
+    account_source = root / "state/account.json"
     if previous is None:
         account = AccountState.empty(DEFAULT_CONFIG.initial_cash)
         account.account_migrations.append({"migration_type": "configuration_binding",
             "effective_config_sha256": config_fingerprint(DEFAULT_CONFIG)})
     else:
-        if previous["config_sha256"] != config_fingerprint(DEFAULT_CONFIG):
-            raise RuntimeError("observer configuration changed")
-        source = root / "state/account.json"
         try:
-            account = load_account(source)
+            account = load_account(account_source)
         except UnsupportedAccountSchemaError:
             # Migrate a copy: the verified previous receipt remains untouched until publication.
             migrated = work / "account_before.json"
-            shutil.copyfile(source, migrated)
-            account = migrate_account_schema(migrated, code_hash=code_fingerprint())
+            shutil.copyfile(account_source, migrated)
+            try:
+                account = migrate_account_schema(migrated, code_hash=code_fingerprint())
+            finally:
+                migrated.with_name(migrated.name + ".lock").unlink(missing_ok=True)
+            account_source = migrated
     # Only this explicitly non-executing observer state may ever be published publicly.
     if account.positions or getattr(account, "broker_as_of", ""):
         raise RuntimeError("real or executed account input is not authorized for public publication")
     current_code_hash = code_fingerprint() if previous is not None else None
     if previous is not None and account.code_hash != current_code_hash:
         # This observer follows reviewed production main. Preserve every economic state field.
-        account = migrate_code_identity(root / "state/account.json", work / "account_before.json",
+        account = migrate_code_identity(account_source, work / "account_before.json",
             new_code_hash=current_code_hash, acknowledge_code_change=True)
-    else:
-        save_account(account, work / "account_before.json")
+    if previous is not None and previous["config_sha256"] != config_fingerprint(DEFAULT_CONFIG):
+        # This account never executes orders; preserve its economic state and audit the new policy.
+        before = economic_state_sha256(account)
+        account.account_migrations.append({"migration_type": "configuration_rebind",
+            "from_config_sha256": previous["config_sha256"],
+            "to_config_sha256": config_fingerprint(DEFAULT_CONFIG)})
+        if economic_state_sha256(account) != before:
+            raise RuntimeError("observer configuration migration changed economic state")
+    save_account(account, work / "account_before.json")
     decision = engine.decide(symbols=SYMBOLS, as_of=day, account=account)
     account.pending_orders = list(decision.pending_orders)
     raw = asdict(decision)

@@ -1,6 +1,7 @@
 {
   "calendar_source": "akshare/Sina",
   "checked_at": "2026-09-29T18:37:52.431676+08:00",
+  "decision_digest": "1237ff67a24db4eb1a6086dfd9e768f8bbbcca7292d6e7a117041292500a2729",
   "previous_session": "2026-09-28",
   "requested_date": "2026-09-29",
   "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/36556704056",
@@ -8,6 +9,6 @@
   "selection_reason": "当日已过15:30收盘确认时点",
   "source_sha": "964954df5373c3e17a1fe041f2339f2342609125",
   "started_at": "2026-09-29T18:37:47.301900+08:00",
-  "status": "STARTED",
+  "status": "COMPLETE",
   "target_date": "2026-09-29"
 }

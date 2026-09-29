@@ -267,7 +267,9 @@ def test_observer_code_update_preserves_account_before_decision(tmp_path):
         assert account.account_migrations[-1]["migration_type"] == "code_identity_only"
         raise ReachedDecision
 
-    with patch("uquant.engine.ProductionEngine", return_value=SimpleNamespace(decide=decide)):
+    with patch("uquant.data.DataStore", return_value=SimpleNamespace(adjustment="raw")), patch(
+            "uquant.engine.ProductionEngine",
+            return_value=SimpleNamespace(data=SimpleNamespace(adjustment="raw"), decide=decide)):
         with pytest.raises(ReachedDecision):
             daily.compute(tmp_path, work, {"target_date": "2026-09-24"},
                           {"config_sha256": config_fingerprint(DEFAULT_CONFIG)})
@@ -307,7 +309,9 @@ def test_observer_schema_upgrade_preserves_verified_previous_account(tmp_path):
         assert account.account_migrations[-1]["migration_type"] == "schema_upgrade"
         raise ReachedDecision
 
-    with patch("uquant.engine.ProductionEngine", return_value=SimpleNamespace(decide=decide)):
+    with patch("uquant.data.DataStore", return_value=SimpleNamespace(adjustment="raw")), patch(
+            "uquant.engine.ProductionEngine",
+            return_value=SimpleNamespace(data=SimpleNamespace(adjustment="raw"), decide=decide)):
         with pytest.raises(ReachedDecision):
             daily.compute(tmp_path, work, {"target_date": "2026-09-28"},
                           {"config_sha256": config_fingerprint(DEFAULT_CONFIG)})
@@ -321,8 +325,10 @@ def test_observer_schema_upgrade_preserves_verified_previous_account(tmp_path):
             "to_config_sha256": config_fingerprint(DEFAULT_CONFIG)}
         raise ReachedDecision
 
-    with patch("uquant.engine.ProductionEngine",
-               return_value=SimpleNamespace(decide=decide_after_config_change)):
+    with patch("uquant.data.DataStore", return_value=SimpleNamespace(adjustment="raw")), patch(
+            "uquant.engine.ProductionEngine",
+            return_value=SimpleNamespace(data=SimpleNamespace(adjustment="raw"),
+                                         decide=decide_after_config_change)):
         with pytest.raises(ReachedDecision):
             daily.compute(tmp_path, work, {"target_date": "2026-09-28"},
                           {"config_sha256": "previous-config"})

@@ -68,12 +68,12 @@ jobs:
         working-directory: private-uquant
         shell: python
         run: |
+          import csv
           import hashlib
           import json
           import os
           from pathlib import Path
           import re
-          import shutil
           import subprocess
           import sys
 
@@ -92,17 +92,30 @@ jobs:
               out.write('Historical integration check only; no live account or current-market signal.\n\n')
 
           symbols = ['sz300308', 'sz300502', 'sz300394', 'sh688008', 'sh603986']
-          # The immutable research snapshot has legacy provenance, not the
-          # current CLI's daily file receipt. Bind an isolated qfq test copy;
-          # never rewrite frozen inputs or represent it as live/raw evidence.
+          # The legacy research pool lacks verified suspension facts. Use a
+          # disclosed synthetic snapshot for CLI plumbing, while checking the
+          # original frozen integrity separately. No production data is changed.
           fixture = work / 'fixture'
-          shutil.copytree('data/frozen', fixture)
+          fixture.mkdir()
+          with Path('data/frozen/sh000300.csv').open() as source_calendar:
+              dates = [row['date'] for row in csv.DictReader(source_calendar)
+                       if row['date'] <= '2026-07-21'][-500:]
+          if len(dates) < 121 or dates[-1] != '2026-07-21':
+              sys.exit('Historical fixture calendar is unavailable.')
+          synthetic = sorted(path.name for path in Path('data/frozen').glob('*.csv'))
+          for name in synthetic:
+              with (fixture / name).open('w', newline='') as output:
+                  writer = csv.writer(output)
+                  writer.writerow(['date', 'open', 'high', 'low', 'close', 'volume', 'amount'])
+                  writer.writerows([date, 20, 20.2, 19.8, 20, 1000000, 20000000] for date in dates)
           (fixture / 'CORPORATE_ACTIONS.json').write_text('[]\n')
-          manifest = json.loads((fixture / 'DATA_MANIFEST.json').read_text())
-          manifest.update(fixture_only=True, price_basis='qfq', files={
-              path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-              for path in [*fixture.glob('*.csv'), fixture / 'CORPORATE_ACTIONS.json']})
+          manifest = {'fixture_only': True, 'price_basis': 'qfq',
+                      'synthetic_fixture_files': synthetic, 'files': {
+                          path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                          for path in [*fixture.glob('*.csv'), fixture / 'CORPORATE_ACTIONS.json']}}
           (fixture / 'DATA_MANIFEST.json').write_text(json.dumps(manifest) + '\n')
+          with summary.open('a') as out:
+              out.write('CLI inputs are synthetic prices on historical calendar dates; not market evidence.\n\n')
           account = work / 'account.json'
           report = work / 'daily.md'
           html = work / 'daily.html'

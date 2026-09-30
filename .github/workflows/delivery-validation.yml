@@ -20,7 +20,7 @@ jobs:
       - name: Read current production source without retaining credentials
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          repository: ychenracing/uquant
+          repository: geniusgrok/uquant
           ref: main
           token: ${{ secrets.UQUANT_READ_TOKEN }}
           persist-credentials: false

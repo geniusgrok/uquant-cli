@@ -8,7 +8,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 CLI_ROOT = Path(__file__).resolve().parent
-SOURCE_REPOSITORY = "https://github.com/ychenracing/uquant.git"
+SOURCE_REPOSITORY = "https://github.com/geniusgrok/uquant.git"
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 def call(command: list[str], cwd: Path, env: dict[str, str], events: list,

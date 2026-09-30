@@ -6,9 +6,27 @@ from pathlib import Path
 from unittest.mock import patch
 
 from runner import main
+from bootstrap import SOURCE_REPOSITORY
+from uquant_cli.store import GitStore
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_all_production_checkouts_use_transferred_repository(self):
+        self.assertEqual(SOURCE_REPOSITORY, "https://github.com/geniusgrok/uquant.git")
+        for name in ("uquant-daily-report.yml", "delivery-validation.yml", "uquant-smoke.yml"):
+            text = (Path(".github/workflows") / name).read_text()
+            with self.subTest(workflow=name):
+                self.assertNotIn("ychenracing/uquant", text)
+                self.assertEqual(text.count("repository: geniusgrok/uquant\n"), 1)
+                checkout = text.split("repository: geniusgrok/uquant\n", 1)[1].split("\n      - ", 1)[0]
+                self.assertIn("ref: main", checkout)
+                self.assertIn("token: ${{ secrets.UQUANT_READ_TOKEN }}", checkout)
+                self.assertIn("persist-credentials: false", checkout)
+
+    def test_transferred_source_is_not_a_report_destination(self):
+        with self.assertRaisesRegex(ValueError, "unapproved write destination"):
+            GitStore(Path("unused"), SOURCE_REPOSITORY)
+
     def test_unapproved_runner_does_not_execute(self):
         with patch.dict(os.environ, {"GITHUB_REPOSITORY": "other/repo"}, clear=True):
             with patch("subprocess.run") as run, contextlib.redirect_stdout(io.StringIO()):

@@ -41,7 +41,7 @@ jobs:
       - name: Read private uquant main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          repository: ychenracing/uquant
+          repository: geniusgrok/uquant
           ref: main
           token: ${{ secrets.UQUANT_READ_TOKEN }}
           path: private-uquant

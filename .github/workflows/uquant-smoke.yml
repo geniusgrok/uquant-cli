@@ -71,6 +71,7 @@ jobs:
           import csv
           import hashlib
           import json
+          import math
           import os
           from pathlib import Path
           import re
@@ -103,11 +104,15 @@ jobs:
           if len(dates) < 121 or dates[-1] != '2026-07-21':
               sys.exit('Historical fixture calendar is unavailable.')
           synthetic = sorted(path.name for path in Path('data/frozen').glob('*.csv'))
-          for name in synthetic:
+          for offset, name in enumerate(synthetic):
               with (fixture / name).open('w', newline='') as output:
                   writer = csv.writer(output)
                   writer.writerow(['date', 'open', 'high', 'low', 'close', 'volume', 'amount'])
-                  writer.writerows([date, 20, 20.2, 19.8, 20, 1000000, 20000000] for date in dates)
+                  for index, date in enumerate(dates):
+                      close = 20 + 0.01 * index + 2 * math.sin((index + offset) / 13) + math.sin((index + 3 * offset) / 7)
+                      volume = 1000000 + 1000 * (index % 19) + 100 * offset
+                      writer.writerow([date, close * 0.999, close * 1.01, close * 0.99,
+                                       close, volume, close * volume])
           (fixture / 'CORPORATE_ACTIONS.json').write_text('[]\n')
           manifest = {'fixture_only': True, 'price_basis': 'qfq',
                       'synthetic_fixture_files': synthetic, 'files': {

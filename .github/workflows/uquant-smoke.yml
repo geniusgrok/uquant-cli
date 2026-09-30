@@ -154,6 +154,9 @@ jobs:
                   found = sorted(checks & set(re.findall(r"'check': '([a-z_]+)'", private_log)))
                   if found:
                       print('Snapshot contract checks: ' + ', '.join(found))
+                  frames = re.findall(r'File "[^"]*/([A-Za-z_][A-Za-z_0-9]*\.py)", line ([0-9]+), in ([A-Za-z_][A-Za-z_0-9]*)', private_log)
+                  error_types = re.findall(r'^([A-Za-z_][A-Za-z_0-9]*Error):', private_log, re.MULTILINE)
+                  print('Failure identity: ' + json.dumps({'frames': frames[-8:], 'types': error_types[-1:]}))
                   print(f'::error::{label} failed (exit {result.returncode}); private output withheld.')
                   sys.exit(result.returncode if result.returncode > 0 else 1)
               print(f'PASS: {label}')

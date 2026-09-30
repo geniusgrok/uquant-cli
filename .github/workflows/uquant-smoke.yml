@@ -73,6 +73,7 @@ jobs:
           import os
           from pathlib import Path
           import re
+          import shutil
           import subprocess
           import sys
 
@@ -91,6 +92,17 @@ jobs:
               out.write('Historical integration check only; no live account or current-market signal.\n\n')
 
           symbols = ['sz300308', 'sz300502', 'sz300394', 'sh688008', 'sh603986']
+          # The immutable research snapshot has legacy provenance, not the
+          # current CLI's daily file receipt. Bind an isolated qfq test copy;
+          # never rewrite frozen inputs or represent it as live/raw evidence.
+          fixture = work / 'fixture'
+          shutil.copytree('data/frozen', fixture)
+          (fixture / 'CORPORATE_ACTIONS.json').write_text('[]\n')
+          manifest = json.loads((fixture / 'DATA_MANIFEST.json').read_text())
+          manifest.update(fixture_only=True, price_basis='qfq', files={
+              path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+              for path in [*fixture.glob('*.csv'), fixture / 'CORPORATE_ACTIONS.json']})
+          (fixture / 'DATA_MANIFEST.json').write_text(json.dumps(manifest) + '\n')
           account = work / 'account.json'
           report = work / 'daily.md'
           html = work / 'daily.html'
@@ -98,10 +110,10 @@ jobs:
               ('CLI startup', ['uquant', '--help']),
               ('Frozen data integrity', ['python', '-m', 'uquant.validation', 'data-manifest', '--data-dir', 'data/frozen']),
               ('Isolated account initialization', [
-                  'uquant', 'account-init', '--data-dir', 'data/frozen', '--symbols', *symbols,
+                  'uquant', 'account-init', '--data-dir', str(fixture), '--symbols', *symbols,
                   '--date', '2026-07-20', '--cash', '2000000', '--output', str(account)]),
               ('Historical daily decision', [
-                  'uquant', 'daily', '--data-dir', 'data/frozen', '--symbols', *symbols,
+                  'uquant', 'daily', '--data-dir', str(fixture), '--symbols', *symbols,
                   '--date', '2026-07-21', '--account', str(account),
                   '--output', str(report), '--html-output', str(html)]),
           ]

@@ -1,0 +1,34 @@
+{
+  "source_sha": "2120acb04cf0e7279425632995ffc98659ea2de7",
+  "runner_sha": "7cb010812c33ccaf66bb6eb3756f34df226b1875",
+  "events": [
+    {
+      "stage": "LOCKED_INSTALL",
+      "started_at": "2026-10-07T16:42:12.018154+08:00",
+      "finished_at": "2026-10-07T16:42:13.785994+08:00",
+      "exit_code": 0,
+      "error_type": null
+    },
+    {
+      "stage": "LOCKED_INSTALL",
+      "started_at": "2026-10-07T16:42:13.786020+08:00",
+      "finished_at": "2026-10-07T16:42:15.506578+08:00",
+      "exit_code": 0,
+      "error_type": null
+    },
+    {
+      "stage": "MARKET_ADAPTER_INSTALL",
+      "started_at": "2026-10-07T16:42:15.506662+08:00",
+      "finished_at": "2026-10-07T16:42:17.124458+08:00",
+      "exit_code": 0,
+      "error_type": null
+    },
+    {
+      "stage": "DAILY_SCAN",
+      "started_at": "2026-10-07T16:42:17.124591+08:00",
+      "finished_at": "2026-10-07T16:42:22.203440+08:00",
+      "exit_code": 0,
+      "error_type": null
+    }
+  ]
+}

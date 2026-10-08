@@ -1,0 +1,745 @@
+{
+  "actual_market_date": "2026-10-08",
+  "calendar_source": "akshare/Sina",
+  "checked_at": "2026-10-08T17:57:47.430049+08:00",
+  "comparison": {
+    "changes": [],
+    "reason": "比较口径变化：config_sha256",
+    "status": "INCOMPARABLE"
+  },
+  "config_sha256": "0b58e22be7bd9f25bd78ccfff9252b0a64ca329ebfeb2eb2b85095373908247d",
+  "data_manifest": {
+    "adjustment": "RAW stocks with causal preclose adjustment; raw indices",
+    "digest": "ef6334dd844330244f3d27e4eae98c88b6542433bd2ab87148d4429635f21436",
+    "end": "2026-10-08",
+    "files": {
+      "CORPORATE_ACTIONS.json": "25f9d753e612549df64ae188d1b7117c6049cb225695f4760bc248666071322b",
+      "sh000300.csv": "c260ac20dfc58ab05359e530de9652fab39c2061b13c147198343a6ad14fd680",
+      "sh000682.csv": "617c2b43ba03e60d02ac2d3f52dbcbec44a902d8990f4d7293838d8b35f04ca4",
+      "sh600487.csv": "488fc2355a59c5b592b2b027afa3d1e5bd383711e253d22a488d6c6b9bc92f93",
+      "sh601869.csv": "2bb9c83d00b1be7efd343c19af8d947d2a11b49b72359f5e8fc6f0e642334a9e",
+      "sh603688.csv": "ced354b904be90d05dc3171f9bee841bade14659ff06b212613352ba5f13f562",
+      "sh603986.csv": "8e80f502f31f7f653d8d42c8a1bb2d82026d52980698e92b19034917ea09da78",
+      "sh688008.csv": "638307aef1299321429051fa51566164ae6d5fe9f587e91c735dd44548c9ce3e",
+      "sh688012.csv": "550e0752ffebe2dabaf1b9191c0265c2b987e5eba41caee87e0711ecdeea8633",
+      "sh688019.csv": "c58c2b014afb19b3eb26fd3f5e20a176766119b755461f657771a12b97cbce33",
+      "sh688037.csv": "d2ada417d8855096ee7570a22a54bcc1308f93ba03a7eaae85d64b52d13dfbd9",
+      "sh688041.csv": "f5de03753669f7384f5634a5da2f8eaf39d83f2422488e6bd9c3ebcd38734dca",
+      "sh688072.csv": "d5415bb66742052674ab45422a0f4fbfefbe64553772fa538fe846ecc43e2b73",
+      "sh688082.csv": "60e4c589faf7671e55abd181e03b9832dd5d59f3cb20e3867b13ae6a5ac72461",
+      "sh688110.csv": "4c2bb23d94d10a217e5e616a0b573334f37af2405a515029b9ec3cbec4bb897a",
+      "sh688120.csv": "7cce99a152112a0d06366daf0058fb041eec6bb43927d4535d0b9ff61d19fcc3",
+      "sh688146.csv": "811138ccc1353558287cc1c27c723ff84cea7c3adfec866e7227da25f7dcd123",
+      "sh688200.csv": "4f24fcb46b7ec65f377311a794211ea5affcb5a6e39fdda9c664eca35ab40537",
+      "sh688233.csv": "963098ab332a9f5ed4553fe5135c3767776afb0ea60885efe202229a3f5897bf",
+      "sh688256.csv": "97308e6e2d6a328fc079e68c5798cfdc79ebc952ae8da93d8a30877c0d8c0114",
+      "sh688268.csv": "9f793422fa55dc76a423df864d4d30288475b217824a5b102e0ed956a7d28402",
+      "sh688300.csv": "a26ea433db951024985ad4b7feea31d42f2d74526bd55b3e108c6b4c44f141d5",
+      "sh688347.csv": "2716fbcc3c09b75fbd86477e1621eef5f54a22fc58307eac899e3911e1e4f92d",
+      "sh688361.csv": "2bd7ae8f67467e8bfdcc7cc2ba19ad2ab463fe2bf7fb22445151ce3f75286224",
+      "sh688498.csv": "b8504aba0d7b8b9a13d891f059aff7363e763410ce9d8c4ad6d462bb94ee1dfa",
+      "sh688766.csv": "d6e1db5a074eb8a4e861970361466a1d8e97450bc344f68c3eaaea89f3a437ec",
+      "sz000636.csv": "6e262f72b9818713dc32ebcbabde0b48ca1f451abcff2b70d6e0884f59bff7dc",
+      "sz002281.csv": "dcd6577bffad731ce77f4d93c72374b0cd4bdd5370eadbf81645e5ed2d61ddc8",
+      "sz002371.csv": "56d509521e8d237719cd73c749666c16018b49d75a1bb4f9cb85c2c09bb193e8",
+      "sz002384.csv": "0c0daa41d9893c2561f6e58dd1d535ea0055f11e375a2d23fd66b50cc3df5c60",
+      "sz002409.csv": "0a8729811679c414ee16465f60f25146378706418564cdd1f4cc2224a1e9cf85",
+      "sz300054.csv": "2d182561e5d16eb96486208c0879f9c4fd5420b56e30bc86cca9c775e7c9706b",
+      "sz300223.csv": "fd115da516704b0189867799e1a3b06ea5560e4cc966ad5392061b4774fb8fc3",
+      "sz300308.csv": "9dd0c71a65308912f735aa7755161147cfffbe6b6f9c83487a2893266145cee0",
+      "sz300394.csv": "37aad3b03248d50e20c54afee452088e87fc58ccd479e27cfe09bfbe3a05f265",
+      "sz300502.csv": "075433933ee33b58261b927fa2e7740835d99270221761a73023bf32800d89df",
+      "sz300604.csv": "b420d69244a93a31c5afd9cb86e9a76d3f025a487ddd9fd2126d3cbc78daf7a8",
+      "sz300666.csv": "9a87f86258fdb08925105c2ed0d3b7f567415efb3fa32e37d770485147ed149d"
+    },
+    "generated_at": "2026-10-08T09:59:34.986801+00:00",
+    "source": "live-baostock",
+    "start": "2023-08-07",
+    "symbols": [
+      "sh000300",
+      "sh000682",
+      "sh600487",
+      "sh601869",
+      "sh603688",
+      "sh603986",
+      "sh688008",
+      "sh688012",
+      "sh688019",
+      "sh688037",
+      "sh688041",
+      "sh688072",
+      "sh688082",
+      "sh688110",
+      "sh688120",
+      "sh688146",
+      "sh688200",
+      "sh688233",
+      "sh688256",
+      "sh688268",
+      "sh688300",
+      "sh688347",
+      "sh688361",
+      "sh688498",
+      "sh688766",
+      "sz000636",
+      "sz002281",
+      "sz002371",
+      "sz002384",
+      "sz002409",
+      "sz300054",
+      "sz300223",
+      "sz300308",
+      "sz300394",
+      "sz300502",
+      "sz300604",
+      "sz300666"
+    ]
+  },
+  "economic_code_hash": "5216fc2733d2772b87f0ef0da1b68e033f6b515465cd868c6e553a34ef3bc660",
+  "finished_at": "2026-10-08T17:59:34.986844+08:00",
+  "initial_cash": 2000000.0,
+  "observer_id": "uquant-13-continuous-no-execution-v1",
+  "observer_start": "2026-09-23",
+  "previous_session": "2026-09-30",
+  "requested_date": "2026-10-08",
+  "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/37760221873",
+  "runner_sha": "69f5a9ab0eb1b3fd5f668ff87aee8f256fa1d015",
+  "schema": "uquant-cli.daily.v1",
+  "selection_reason": "当日已过15:30收盘确认时点",
+  "signals": {
+    "market": {
+      "base_freeze_new_risk": true,
+      "freeze_new_risk": true,
+      "opportunity": "RECOVERY",
+      "reduction_level": 1,
+      "risk": "CAUTION",
+      "sector_guard_active": false,
+      "sentinel_causal_active_families": [
+        "breadth_structure",
+        "market_velocity"
+      ],
+      "sentinel_causal_coverage_status": "READY",
+      "sentinel_freeze_new_risk": false,
+      "severity": "NORMAL",
+      "system_gross_cap": 1.0,
+      "target_gross_cap": 1.0
+    },
+    "stocks": [
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.40142134095338133
+        },
+        "name": "中际旭创",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -3.1468012468457873,
+          "close": 783.0,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz300308",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "optical",
+          "mature": false,
+          "score": 0.40142134095338133,
+          "symbol": "sz300308"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.47657596126641694
+        },
+        "name": "新易盛",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -2.699228791773778,
+          "close": 378.5,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz300502",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "optical",
+          "mature": false,
+          "score": 0.47657596126641694,
+          "symbol": "sz300502"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.5651760901554113
+        },
+        "name": "天孚通信",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -9.855428155079181,
+          "close": 235.07,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz300394",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "optical",
+          "mature": false,
+          "score": 0.5651760901554113,
+          "symbol": "sz300394"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.4392638869536374
+        },
+        "name": "寒武纪",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -2.7759883450114486,
+          "close": 981.0,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688256",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "compute",
+          "mature": false,
+          "score": 0.4392638869536374,
+          "symbol": "sh688256"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.21020043085873133
+        },
+        "name": "兆易创新",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -5.510031082226618,
+          "close": 334.4,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh603986",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "memory",
+          "mature": false,
+          "score": 0.21020043085873133,
+          "symbol": "sh603986"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.6683741103591724
+        },
+        "name": "拓荆科技",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -3.73906249999999,
+          "close": 616.07,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688072",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "equipment",
+          "mature": false,
+          "score": 0.6683741103591724,
+          "symbol": "sh688072"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.4234318411928044
+        },
+        "name": "联瑞新材",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -3.4234234234234218,
+          "close": 139.36,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688300",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "materials",
+          "mature": false,
+          "score": 0.4234318411928044,
+          "symbol": "sh688300"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.3993778245413381
+        },
+        "name": "鼎龙股份",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -6.686434395848783,
+          "close": 62.94,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz300054",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "materials",
+          "mature": false,
+          "score": 0.3993778245413381,
+          "symbol": "sz300054"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.751489084954879
+        },
+        "name": "中科飞测",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -5.0445443868343265,
+          "close": 331.48,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688361",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "equipment",
+          "mature": false,
+          "score": 0.751489084954879,
+          "symbol": "sh688361"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.2561616984806531
+        },
+        "name": "雅克科技",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -4.6363636363636385,
+          "close": 115.39,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz002409",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "materials",
+          "mature": false,
+          "score": 0.2561616984806531,
+          "symbol": "sz002409"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.5865509707004343
+        },
+        "name": "源杰科技",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -19.999999999999996,
+          "close": 1290.4,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688498",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "optical",
+          "mature": false,
+          "score": 0.5865509707004343,
+          "symbol": "sh688498"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.5769382310917683
+        },
+        "name": "华海清科",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -2.2556390977443552,
+          "close": 222.3,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sh688120",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "equipment",
+          "mature": false,
+          "score": 0.5769382310917683,
+          "symbol": "sh688120"
+        }
+      },
+      {
+        "allocation": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.2924668710989756
+        },
+        "name": "东山精密",
+        "orders": [],
+        "qualification": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          }
+        },
+        "quote": {
+          "adjustment": "raw",
+          "change_pct": -10.000000000000009,
+          "close": 150.66,
+          "date": "2026-10-08",
+          "provider": "baostock"
+        },
+        "risk_limits": {
+          "order_planning": {
+            "block": "NO_TARGET"
+          }
+        },
+        "symbol": "sz002384",
+        "target": null,
+        "trend_evidence": {
+          "confidence": 1.0,
+          "emerging": false,
+          "industry": "optical",
+          "mature": false,
+          "score": 0.2924668710989756,
+          "symbol": "sz002384"
+        }
+      }
+    ]
+  },
+  "source_sha": "4f170d019cf339b9278ba33d35c499b27f0f8d2d",
+  "started_at": "2026-10-08T17:57:41.243621+08:00",
+  "status": "COMPLETE",
+  "target_date": "2026-10-08"
+}

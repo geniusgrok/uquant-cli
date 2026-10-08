@@ -51,6 +51,7 @@ def main() -> int:
                 failure = outcome.get("failure", {})
                 print("FAILURE_STAGE=" + failure.get("stage", "UNKNOWN"))
                 print("FAILURE_REASON=" + failure.get("reason", "UNCLASSIFIED"))
+                print("FAILURE_REASON_CODE=" + failure.get("reason_code", "UNCLASSIFIED"))
                 if outcome.get("failure_summary"):
                     print("FAILURE_SUMMARY=" + outcome["failure_summary"])
     else:

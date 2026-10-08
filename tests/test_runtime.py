@@ -3,7 +3,7 @@ import json
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -245,7 +245,7 @@ def test_observer_code_update_preserves_account_before_decision(tmp_path):
     from uquant.account import economic_state_sha256, load_account, save_account
     from uquant.config import DEFAULT_CONFIG, config_fingerprint
     from uquant.engine import code_fingerprint
-    from uquant.types import AccountState
+    from uquant.models import AccountState
 
     account = AccountState.empty(DEFAULT_CONFIG.initial_cash)
     account.code_hash = "previous-production-code"
@@ -281,7 +281,7 @@ def test_observer_schema_upgrade_preserves_verified_previous_account(tmp_path):
     from uquant.account import load_account, save_account
     from uquant.config import DEFAULT_CONFIG, config_fingerprint
     from uquant.engine import code_fingerprint
-    from uquant.types import ACCOUNT_SCHEMA_VERSION, AccountState
+    from uquant.models import ACCOUNT_SCHEMA_VERSION, AccountState
 
     account = AccountState.empty(DEFAULT_CONFIG.initial_cash)
     account.code_hash = "previous-production-code"
@@ -318,20 +318,16 @@ def test_observer_schema_upgrade_preserves_verified_previous_account(tmp_path):
     assert source.read_bytes() == old_bytes
     assert load_account(work / "account_before.json").schema_version == ACCOUNT_SCHEMA_VERSION
 
-    def decide_after_config_change(*, symbols, as_of, account):
-        assert account.cash == DEFAULT_CONFIG.initial_cash and not account.positions
-        assert account.account_migrations[-1] == {
-            "migration_type": "configuration_rebind", "from_config_sha256": "previous-config",
-            "to_config_sha256": config_fingerprint(DEFAULT_CONFIG)}
-        raise ReachedDecision
+    decide_after_config_change = Mock(side_effect=AssertionError("unverified configuration reached decision"))
 
     with patch("uquant.data.DataStore", return_value=SimpleNamespace(adjustment="raw")), patch(
             "uquant.engine.ProductionEngine",
             return_value=SimpleNamespace(data=SimpleNamespace(adjustment="raw"),
                                          decide=decide_after_config_change)):
-        with pytest.raises(ReachedDecision):
+        with pytest.raises(RuntimeError, match="configuration requires explicit reconciliation"):
             daily.compute(tmp_path, work, {"target_date": "2026-09-28"},
                           {"config_sha256": "previous-config"})
+    decide_after_config_change.assert_not_called()
     assert source.read_bytes() == old_bytes
     assert load_account(work / "account_before.json").cash == DEFAULT_CONFIG.initial_cash
     assert not (work / "account_before.json.lock").exists()
@@ -363,15 +359,14 @@ def test_market_request_retries_transient_failures_only(monkeypatch):
         market._retry_request(invalid_response)
     assert calls == 1
 
-    calls = 0
-    def late_quote():
-        nonlocal calls
-        calls += 1
-        if calls < 3:
-            raise ValueError("target raw close missing")
-        return "verified"
-    assert market._retry_request(late_quote) == "verified"
-    assert calls == 3
+    # A missing quote or historical contract failure is not a network retry.
+    # Only refresh's validated TARGET_BAR_UNAVAILABLE path may wait for a bar.
+    for error in (ValueError("target raw close missing"),
+                  market.MarketDataError("HISTORICAL_ANCHOR_MISSING")):
+        operation = Mock(side_effect=error)
+        with pytest.raises(type(error)):
+            market._retry_request(operation)
+        assert operation.call_count == 1
 
     calls = 0
     def delayed_login():
@@ -529,6 +524,7 @@ def test_refresh_extends_verified_raw_prefix_and_uses_exchange_preclose(tmp_path
         'start': '2014-01-01', 'end': '2026-09-24', 'suspended_dates': {'sz300308': []}}))
 
     class FakeStore:
+        _validate = staticmethod(uquant.data.DataStore._validate)
         def __init__(self, root):
             self.root = root
             self.snapshot_manifest = json.loads((root / 'DATA_MANIFEST.json').read_text())
@@ -568,3 +564,364 @@ def test_refresh_extends_verified_raw_prefix_and_uses_exchange_preclose(tmp_path
     assert audit['quotes']['sz300308']['close'] == 11
     assert audit['quotes']['sz300308']['change_pct'] == pytest.approx(10)
     assert pd.read_csv(tmp_path / 'inputs/sz300308.csv').iloc[0]['close'] == 10
+
+
+def raw_market_rows():
+    import pandas as pd
+    return pd.DataFrame({'date': ['2026-09-24'], 'open': [10.], 'high': [11.],
+        'low': [9.], 'close': [10.], 'preclose': [9.5], 'volume': [1000.],
+        'amount': [10000.], 'volume_unit': ['shares'], 'special_treatment': [0]})
+
+
+@pytest.mark.parametrize('failure,reason', [
+    ('missing_anchor', 'HISTORICAL_ANCHOR_MISSING'),
+    ('duplicate_anchor', 'HISTORICAL_ANCHOR_DUPLICATED'),
+    ('revised_anchor', 'HISTORICAL_ANCHOR_REVISED'),
+    ('micro_revision', 'HISTORICAL_ANCHOR_REVISED'),
+    ('bad_price', 'RESPONSE_FORMAT_INVALID'),
+    ('bad_date', 'RESPONSE_FORMAT_INVALID'),
+    ('incomplete_target', 'TARGET_BAR_UNAVAILABLE'),
+])
+def test_raw_extension_separates_unavailable_bar_from_integrity_failures(failure, reason):
+    import pandas as pd
+    old = raw_market_rows()
+    today = old.assign(date='2026-09-28', close=11., preclose=10.)
+    fresh = pd.concat([old, today], ignore_index=True)
+    if failure == 'missing_anchor':
+        fresh = today
+    elif failure == 'duplicate_anchor':
+        fresh = pd.concat([old, fresh], ignore_index=True)
+    elif failure == 'revised_anchor':
+        fresh.loc[0, 'close'] = 10.5
+    elif failure == 'micro_revision':
+        fresh.loc[0, 'close'] += .000001
+    elif failure == 'bad_price':
+        fresh.loc[1, 'close'] = float('nan')
+    elif failure == 'bad_date':
+        fresh.loc[0, 'date'] = 'not-a-date'
+    else:
+        fresh = old
+    diagnostic = {}
+    with pytest.raises(market.MarketDataError) as failed:
+        market._validated_extension(fresh, [], old, 'sh600487', '2026-09-28', diagnostic)
+    assert failed.value.reason_code == reason
+    assert diagnostic['normalized_response_rows'] == len(fresh)
+    assert len(diagnostic['normalized_response_sha256']) == 64
+
+
+def test_market_recovery_rebuilds_full_snapshot_and_retains_failure_facts(tmp_path, monkeypatch):
+    root = tmp_path / 'inputs'
+    calls, waits = [], []
+
+    def build(destination, day, previous, **kwargs):
+        assert not destination.exists()
+        destination.mkdir()
+        calls.append((day, previous))
+        if len(calls) < 3:
+            detail = {'category': 'unavailable', 'reason_code': 'TARGET_BAR_UNAVAILABLE',
+                      'operation': 'stock_daily', 'symbol': 'sh600487', 'anchor_rows': 1}
+            put(destination, 'audit.json', {'failures': {'snapshot': detail}})
+            (destination / 'unaccepted.csv').write_text('partial input')
+            raise market.LiveInputError({'snapshot': detail})
+        assert not (destination / 'unaccepted.csv').exists()
+        audit = {'failures': {}, 'all_inputs_validated': True}
+        put(destination, 'audit.json', audit)
+        return audit
+
+    monkeypatch.setattr(market, '_refresh_once', build)
+    monkeypatch.setattr(market, 'pause', waits.append)
+    audit = market.refresh(root, '2026-09-28', '2026-09-24')
+    assert calls == [('2026-09-28', '2026-09-24')] * 3
+    assert waits == [60, 120]
+    assert audit['all_inputs_validated']
+    assert [item['attempt'] for item in audit['recovery_attempts']] == [1, 2]
+    assert json.loads((root / 'audit.json').read_text()) == audit
+
+
+@pytest.mark.parametrize('reason', ['HISTORICAL_ANCHOR_MISSING', 'HISTORICAL_ANCHOR_DUPLICATED',
+    'HISTORICAL_ANCHOR_REVISED', 'RESPONSE_FORMAT_INVALID', 'TARGET_BAR_UNAVAILABLE'])
+def test_market_recovery_failures_remain_failed_and_preserved(tmp_path, monkeypatch, reason):
+    from unittest.mock import Mock
+    root = tmp_path / 'inputs'
+    builds = []
+
+    def build(destination, *args, **kwargs):
+        destination.mkdir()
+        builds.append(destination)
+        detail = {'category': 'data_contract', 'reason_code': reason}
+        put(destination, 'audit.json', {'failures': {'snapshot': detail}})
+        raise market.LiveInputError({'snapshot': detail})
+
+    wait = Mock()
+    monkeypatch.setattr(market, '_refresh_once', build)
+    monkeypatch.setattr(market, 'pause', wait)
+    with pytest.raises(market.LiveInputError):
+        market.refresh(root, '2026-09-28', '2026-09-24')
+    assert len(builds) == (3 if reason == 'TARGET_BAR_UNAVAILABLE' else 1)
+    assert wait.call_count == (2 if reason == 'TARGET_BAR_UNAVAILABLE' else 0)
+    audit = json.loads((root / 'audit.json').read_text())
+    assert audit['failures']['snapshot']['reason_code'] == reason
+    assert len(audit['recovery_attempts']) == len(builds)
+
+
+def raw_snapshot_fixture(tmp_path):
+    import hashlib
+    import pandas as pd
+    root = tmp_path / 'base'
+    root.mkdir()
+    dates = pd.bdate_range(end='2026-09-24', periods=121).strftime('%Y-%m-%d')
+    bars = pd.concat([raw_market_rows().assign(date=day, preclose=10.) for day in dates], ignore_index=True)
+    for symbol in ('sh600487', 'sz300308', 'sh000300', 'sh000682'):
+        bars.to_csv(root / (symbol + '.csv'), index=False)
+    (root / 'CORPORATE_ACTIONS.json').write_text('[]')
+    files = {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+             for path in root.iterdir()}
+    put(root, 'DATA_MANIFEST.json', {'snapshot_id': 'fixture-only', 'price_basis': 'raw',
+        'start': dates[0], 'end': dates[-1], 'files': files, 'suspended_dates': {}})
+    return root, bars
+
+
+def test_recovery_rechecks_risk_basket_with_native_snapshot_validator(tmp_path, monkeypatch):
+    import uquant.data
+    import uquant.data_update
+    import uquant.engine
+    import pandas as pd
+    base, bars = raw_snapshot_fixture(tmp_path)
+    stock_calls, waits = [], []
+
+    class Provider:
+        name = 'baostock'
+        def stock_daily(self, symbol, start, end):
+            stock_calls.append(symbol)
+            anchor = bars.tail(1)
+            if symbol == 'sz300308' and stock_calls.count(symbol) == 1:
+                return anchor, []
+            return pd.concat([anchor, anchor.assign(date=end)], ignore_index=True), []
+        def dividends(self, symbol, start, end):
+            return []
+        def index_daily(self, symbol, start, end):
+            anchor = bars.tail(1)
+            return pd.concat([anchor, anchor.assign(date=end)], ignore_index=True)
+
+    monkeypatch.setattr(uquant.data_update, 'BaostockProvider', Provider)
+    monkeypatch.setattr(uquant.engine, 'REFERENCE_UNIVERSE', ('sh600487',))
+    monkeypatch.setattr(market, 'SYMBOLS', ('sz300308',))
+    monkeypatch.setattr(market, 'pause', waits.append)
+    destination = tmp_path / 'inputs'
+    audit = market.refresh(destination, '2026-09-28', '2026-09-24', prior_root=base)
+    assert stock_calls == ['sh600487', 'sz300308'] * 2
+    assert waits == [60]
+    assert audit['recovery_attempts'][0]['failures']['snapshot']['reason_code'] == 'TARGET_BAR_UNAVAILABLE'
+    report = uquant.data_update.check_snapshot(destination, as_of='2026-09-28', daily=True,
+                                               required=['sh600487', 'sz300308'])
+    assert report['ok'] and set(report['coverage']) == {'sh600487', 'sz300308', 'sh000300', 'sh000682'}
+    pd.testing.assert_frame_equal(pd.read_csv(destination / 'sh600487.csv').iloc[:-1], bars)
+
+
+@pytest.mark.parametrize('kind,reason', [('numeric', 'RESPONSE_FORMAT_INVALID'),
+    ('unknown_status', 'RESPONSE_FORMAT_INVALID'), ('oversize', 'RESPONSE_TOO_LARGE')])
+def test_failed_stock_response_is_preserved_before_numeric_conversion(tmp_path, monkeypatch, kind, reason):
+    import uquant.data_update
+    base, _ = raw_snapshot_fixture(tmp_path)
+    fields = 'date,open,high,low,close,preclose,volume,amount,tradestatus,isST'.split(',')
+    row = ['2026-09-24', 'broken-number', '11', '9', '10', '10', '1000', '10000', '1', '0']
+    if kind == 'unknown_status':
+        row[1], row[-2], row[-1] = '10', 'UNKNOWN', 'UNKNOWN'
+    elif kind == 'oversize':
+        row[1] = 'x' * 65
+    rows = [row]
+    if kind == 'unknown_status':
+        row[0] = '2026-09-28'
+        rows = [['2026-09-24', '10', '11', '9', '10', '10', '1000', '10000', '1', '0'], row]
+
+    class Response:
+        error_code = '0'
+        def __init__(self):
+            self.fields, self.index = fields, -1
+        def next(self):
+            self.index += 1
+            return self.index < len(rows)
+        def get_row_data(self):
+            return rows[self.index]
+
+    class Provider(uquant.data_update.BaostockProvider):
+        def __init__(self):
+            from types import SimpleNamespace
+            self._bs = SimpleNamespace(query_history_k_data_plus=lambda *args, **kwargs: Response())
+
+    monkeypatch.setattr(uquant.data_update, 'BaostockProvider', Provider)
+    wait = Mock()
+    monkeypatch.setattr(market, 'pause', wait)
+    with pytest.raises(market.LiveInputError):
+        market.refresh(tmp_path / 'inputs', '2026-09-28', '2026-09-24', prior_root=base)
+    detail = json.loads((tmp_path / 'inputs/audit.json').read_text())['failures']['snapshot']
+    assert detail['reason_code'] == reason
+    if kind == 'oversize':
+        assert 'response' not in detail
+        assert detail['raw_response_bytes'] > 65 and len(detail['raw_response_sha256']) == 64
+    else:
+        assert detail['response'] == {'fields': fields, 'rows': rows}
+        import hashlib
+        body = json.dumps(detail['response'], ensure_ascii=False, separators=(',', ':')).encode()
+        assert detail['raw_response_bytes'] == len(body)
+        assert detail['raw_response_sha256'] == hashlib.sha256(body).hexdigest()
+    wait.assert_not_called()
+
+
+def action_identity_fixture(tmp_path):
+    import hashlib
+    import shutil
+    from uquant.account import save_account
+    from uquant.data import DataStore
+    from uquant.models import AccountState
+
+    base, _ = raw_snapshot_fixture(tmp_path)
+    actions = [{'event_id': 'sh600487:2026-09-23:distribution', 'symbol': 'sh600487',
+        'ex_date': '2026-09-23', 'cash_per_share': .1, 'share_ratio': 0.,
+        'announce_date': '2026-09-21', 'register_date': '2026-09-22', 'pay_date': '2026-09-23',
+        'source': 'fixture-only', 'description': 'fixture-only'}]
+    put(base, 'CORPORATE_ACTIONS.json', actions)
+    manifest = json.loads((base / 'DATA_MANIFEST.json').read_text())
+    manifest['files']['CORPORATE_ACTIONS.json'] = hashlib.sha256((base / 'CORPORATE_ACTIONS.json').read_bytes()).hexdigest()
+    put(base, 'DATA_MANIFEST.json', manifest)
+    root = tmp_path / 'observer'
+    shutil.copytree(base, root / 'inputs')
+    current = tmp_path / 'current'
+    shutil.copytree(base, current)
+    data = DataStore(root / 'inputs')
+    account = AccountState.empty(2_000_000)
+    account.data_hash_as_of = '2026-09-24'
+    account.data_hash_symbols = ['sh600487', 'sz300308', 'sh000300', 'sh000682']
+    files = data.manifest(account.data_hash_symbols, as_of=account.data_hash_as_of).files
+    files.pop('CORPORATE_ACTIONS.json')
+    account.data_hash = hashlib.sha256(json.dumps(files, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    account.risk_streaks = {'sh600487': 2}
+    save_account(account, root / 'state/account.json')
+    previous = {**result(), 'target_date': '2026-09-24', 'source_sha': daily.LEGACY_ACTION_MANIFEST_PRODUCER}
+    name = 'reports/2026-09-24/result.json'
+    put(root, name, previous)
+    put(root, 'latest.json', {'result_path': name, 'files': {
+        name: identity(root / name), 'state/account.json': identity(root / 'state/account.json'),
+        **{path.relative_to(root).as_posix(): identity(path) for path in (root / 'inputs').iterdir()}}})
+    return root, account, current, previous
+
+
+def test_action_manifest_identity_changes_only_proven_binding_and_audit(tmp_path):
+    from uquant.account import economic_state_sha256
+    from uquant.data import DataStore
+    root, account, current, previous = action_identity_fixture(tmp_path)
+    before = account.to_dict()
+    disk_bytes = (root / 'state/account.json').read_bytes()
+    old_economic_hash = economic_state_sha256(account)
+    daily.rebind_action_manifest_identity(root, account, DataStore(current), previous)
+    after = account.to_dict()
+    assert after['data_hash'] != before['data_hash']
+    migration = account.account_migrations[-1]
+    assert migration['economic_state_sha256_before'] == old_economic_hash
+    assert migration['economic_state_sha256_after'] == economic_state_sha256(account) != old_economic_hash
+    assert migration['previous_identity_economic_state_sha256_after'] == old_economic_hash
+    after['data_hash'], after['account_migrations'] = before['data_hash'], before['account_migrations']
+    assert after == before
+    assert (root / 'state/account.json').read_bytes() == disk_bytes
+    bound = account.to_dict()
+    daily.rebind_action_manifest_identity(root, account, DataStore(current), previous)
+    assert account.to_dict() == bound
+
+
+@pytest.mark.parametrize('failure', ['unknown_source', 'pending', 'broker', 'unverified_old_input',
+                                   'revised_price', 'revised_action', 'unknown_old_digest'])
+def test_action_manifest_identity_refuses_economic_or_historical_reconciliation(tmp_path, failure):
+    import hashlib
+    from uquant.data import DataStore
+    root, account, current, previous = action_identity_fixture(tmp_path)
+    if failure == 'unknown_source':
+        previous['source_sha'] = '0' * 40
+    elif failure == 'pending':
+        account.pending_orders.append({'unresolved': True})
+    elif failure == 'broker':
+        account.broker_as_of = '2026-09-24'
+    elif failure == 'unverified_old_input':
+        receipt = json.loads((root / 'latest.json').read_text())
+        receipt['files'].pop('inputs/CORPORATE_ACTIONS.json')
+        put(root, 'latest.json', receipt)
+    elif failure in {'revised_price', 'revised_action'}:
+        path = current / ('sh600487.csv' if failure == 'revised_price' else 'CORPORATE_ACTIONS.json')
+        if failure == 'revised_price':
+            import pandas as pd
+            rows = pd.read_csv(path)
+            rows.loc[0, 'volume'] += 1
+            rows.to_csv(path, index=False)
+        else:
+            actions = json.loads(path.read_text())
+            actions[0]['cash_per_share'] += .1
+            path.write_text(json.dumps(actions))
+        manifest = json.loads((current / 'DATA_MANIFEST.json').read_text())
+        manifest['files'][path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
+        put(current, 'DATA_MANIFEST.json', manifest)
+    else:
+        account.data_hash = '0' * 64
+    before = account.to_dict()
+    with pytest.raises(RuntimeError):
+        daily.rebind_action_manifest_identity(root, account, DataStore(current), previous)
+    assert account.to_dict() == before
+
+
+def config_label_fixture(tmp_path):
+    from uquant.account import save_account
+    root, account, current, previous = action_identity_fixture(tmp_path)
+    old_hash = 'b2acb71bcf17245eaf7cbe0ac0ac59633f8996818e4c7ba8ae76b246b69f9f84'
+    initial_hash = '4d9c3495556d78e24f629355bb2bedbd4f3e823a53cf30499c9f18e04d53fda6'
+    account.account_migrations = [{'migration_type': 'configuration_binding',
+        'effective_config_sha256': initial_hash}, {'migration_type': 'configuration_rebind',
+        'from_config_sha256': initial_hash, 'to_config_sha256': old_hash}]
+    previous['config_sha256'] = old_hash
+    save_account(account, root / 'state/account.json')
+    name = 'reports/2026-09-24/result.json'
+    put(root, name, previous)
+    receipt = json.loads((root / 'latest.json').read_text())
+    for path in ('state/account.json', name):
+        receipt['files'][path] = identity(root / path)
+    put(root, 'latest.json', receipt)
+    return root, account, previous
+
+
+def test_only_fixed_config_labels_create_native_binding_preserving_original_audit(tmp_path):
+    from uquant.account import economic_state_sha256
+    from uquant.config import config_fingerprint
+    root, account, previous = config_label_fixture(tmp_path)
+    before, old_hash = account.to_dict(), economic_state_sha256(account)
+    disk_before = (root / 'state/account.json').read_bytes()
+    daily.rebind_config_labels(root, account, previous)
+    assert account.account_migrations[:-1] == before['account_migrations']
+    assert account.account_migrations[-1]['migration_type'] == 'configuration_binding'
+    assert account.account_migrations[-1]['effective_config_sha256'] == config_fingerprint()
+    assert account.account_migrations[-1]['metadata_labels_added'] == {
+        'economic_core': 'legacy_lots', 'remove_relative_strength': True}
+    assert economic_state_sha256(account) == old_hash
+    after = account.to_dict()
+    after['account_migrations'] = before['account_migrations']
+    assert after == before
+    assert (root / 'state/account.json').read_bytes() == disk_before
+
+
+@pytest.mark.parametrize('failure', ['unknown_source', 'unknown_previous_hash', 'unrecorded_previous_hash',
+                                   'economic_parameter_change', 'missing_receipt_original'])
+def test_config_labels_do_not_authorize_unknown_or_semantic_policy_changes(tmp_path, monkeypatch, failure):
+    import uquant.config
+    root, account, previous = config_label_fixture(tmp_path)
+    if failure == 'unknown_source':
+        previous['source_sha'] = '0' * 40
+    elif failure == 'unknown_previous_hash':
+        previous['config_sha256'] = '0' * 64
+    elif failure == 'unrecorded_previous_hash':
+        account.account_migrations[-1]['to_config_sha256'] = '0' * 64
+    elif failure == 'economic_parameter_change':
+        monkeypatch.setattr(uquant.config, 'DEFAULT_CONFIG', uquant.config.DEFAULT_CONFIG.override(max_positions=5))
+    else:
+        receipt = json.loads((root / 'latest.json').read_text())
+        receipt['files'].pop('state/account.json')
+        put(root, 'latest.json', receipt)
+    before = account.to_dict()
+    with pytest.raises(RuntimeError):
+        daily.rebind_config_labels(root, account, previous)
+    assert account.to_dict() == before

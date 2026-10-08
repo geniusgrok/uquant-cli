@@ -1,7 +1,5 @@
 {
-  "events_path": "runs/37760221873-1/events.json",
   "finished_at": "2026-10-08T17:59:34.986844+08:00",
-  "record_path": "runs/37760221873-1/status.json",
   "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/37760221873",
   "source_sha": "4f170d019cf339b9278ba33d35c499b27f0f8d2d",
   "started_at": "2026-10-08T17:57:41.243621+08:00",

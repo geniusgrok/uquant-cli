@@ -1,0 +1,12 @@
+{
+  "failures": {
+    "snapshot": {
+      "category": "invalid_response",
+      "operation": "stock_daily",
+      "symbol": "sh600487",
+      "type": "ValueError"
+    }
+  },
+  "provider": "baostock",
+  "target_date": "2026-10-08"
+}

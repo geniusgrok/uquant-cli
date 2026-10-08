@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
+import json
 import math
 import os
 import shutil
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime
 from pathlib import Path
 
@@ -15,6 +17,8 @@ from .report import compare, json_safe, render, signals
 from .store import GitStore, identity, open_store, put, read, verify
 
 OBSERVER = "uquant-13-continuous-no-execution-v1"
+LEGACY_ACTION_MANIFEST_PRODUCER = "964954df5373c3e17a1fe041f2339f2342609125"
+CURRENT_LABEL_CONFIG_SHA256 = "0b58e22be7bd9f25bd78ccfff9252b0a64ca329ebfeb2eb2b85095373908247d"
 
 
 def calendar_context(root: Path, now: datetime) -> tuple[dict, list[str]]:
@@ -108,13 +112,122 @@ def prior(root: Path, context: dict) -> dict | None:
     return result
 
 
+def rebind_action_manifest_identity(root: Path, account, current_data, previous: dict) -> None:
+    """Migrate the one verified empty observer's pre-action manifest contract.
+
+    Historical price/action facts must be identical. This does not reconcile
+    a changed historical input or authorize an executed account migration.
+    """
+    from uquant.account import economic_state_sha256
+    from uquant.data import DataStore, RAW_ADJUSTMENT
+
+    new = current_data.manifest(account.data_hash_symbols, as_of=account.data_hash_as_of)
+    if new.digest == account.data_hash:
+        return
+    if (previous.get("observer_id") != OBSERVER
+            or previous.get("source_sha") != LEGACY_ACTION_MANIFEST_PRODUCER
+            or previous.get("target_date") != account.data_hash_as_of
+            or account.positions or account.pending_orders or account.fills or account.order_ledger
+            or account.broker_as_of or account.broker_binding or account.broker_snapshots
+            or account.external_cash_flows or account.receivables or account.dividend_tax_lots
+            or account.cash != account.initial_cash):
+        raise RuntimeError("observer action manifest requires explicit reconciliation")
+    receipt = read(root, "latest.json")
+    required_receipt_files = {"state/account.json", receipt["result_path"], "inputs/DATA_MANIFEST.json",
+        "inputs/CORPORATE_ACTIONS.json", *(f"inputs/{symbol}.csv" for symbol in account.data_hash_symbols)}
+    if not required_receipt_files <= set(receipt["files"]):
+        raise RuntimeError("observer action manifest receipt lacks originals")
+    verify(root, receipt["files"])
+    if read(root, receipt["result_path"]) != previous:
+        raise RuntimeError("observer action manifest receipt differs")
+    old_data = DataStore(root / "inputs")
+    old = old_data.manifest(account.data_hash_symbols, as_of=account.data_hash_as_of)
+    price_files = dict(old.files)
+    action_hash = price_files.pop("CORPORATE_ACTIONS.json", None)
+    legacy_digest = hashlib.sha256(json.dumps(price_files, sort_keys=True,
+                                              separators=(",", ":")).encode()).hexdigest()
+    if (old_data.adjustment != RAW_ADJUSTMENT or current_data.adjustment != RAW_ADJUSTMENT
+            or not action_hash or legacy_digest != account.data_hash or old.files != new.files):
+        raise RuntimeError("observer action manifest facts differ")
+    # Compare the complete recorded old action inventory with the new snapshot's
+    # preceding prefix, including symbols beyond an accidentally narrower binding.
+    old_actions = read(old_data.root, "CORPORATE_ACTIONS.json")
+    new_actions = [event for event in read(current_data.root, "CORPORATE_ACTIONS.json")
+                   if event["ex_date"] <= account.data_hash_as_of]
+    if (any(event["ex_date"] > account.data_hash_as_of for event in old_actions)
+            or sorted(old_actions, key=lambda event: event["event_id"]) != sorted(
+                new_actions, key=lambda event: event["event_id"])):
+        raise RuntimeError("observer action manifest facts differ")
+    before_payload = account.to_dict()
+    before, old_hash = economic_state_sha256(account), account.data_hash
+    account.data_hash = new.digest
+    after_payload = account.to_dict()
+    after_payload["data_hash"] = old_hash
+    neutral_after = economic_state_sha256(replace(account, data_hash=old_hash))
+    if after_payload != before_payload or neutral_after != before:
+        account.data_hash = old_hash
+        raise RuntimeError("observer action manifest migration changed economic state")
+    account.account_migrations.append({"migration_type": "visible_action_manifest_identity",
+        "as_of": account.data_hash_as_of, "from_data_hash": old_hash, "to_data_hash": new.digest,
+        "verified_previous_source_sha": previous["source_sha"], "visible_action_sha256": action_hash,
+        "economic_state_sha256_before": before, "economic_state_sha256_after": economic_state_sha256(account),
+        "previous_identity_economic_state_sha256_after": neutral_after,
+        "allowed_identity_field_change": "data_hash"})
+
+
+def rebind_config_labels(root: Path, account, previous: dict) -> None:
+    """Bind fixed metadata labels added to the unchanged verified policy."""
+    from uquant.account import economic_state_sha256
+    from uquant.config import DEFAULT_CONFIG, config_fingerprint
+
+    current_hash = config_fingerprint(DEFAULT_CONFIG)
+    labels = {"economic_core": "legacy_lots", "remove_relative_strength": True}
+    legacy_payload = DEFAULT_CONFIG.to_dict()
+    if (current_hash != CURRENT_LABEL_CONFIG_SHA256
+            or any(legacy_payload.pop(name, None) != value for name, value in labels.items())):
+        raise RuntimeError("observer configuration requires explicit reconciliation")
+    if legacy_payload.get("risk_sentinel_causal_confirmation_enabled") is False:
+        legacy_payload.pop("risk_sentinel_causal_confirmation_enabled")
+    legacy_hash = hashlib.sha256(json.dumps(legacy_payload, allow_nan=False,
+        sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    config_events = [event for event in account.account_migrations
+                     if event.get("migration_type") in {"configuration_binding", "configuration_rebind"}]
+    recorded_hash = (config_events[-1].get("effective_config_sha256")
+                     or config_events[-1].get("to_config_sha256")) if config_events else None
+    if (previous.get("observer_id") != OBSERVER
+            or previous.get("source_sha") != LEGACY_ACTION_MANIFEST_PRODUCER
+            or previous.get("config_sha256") != legacy_hash or recorded_hash != legacy_hash
+            or previous.get("target_date") != account.data_hash_as_of
+            or account.positions or account.pending_orders or account.fills or account.order_ledger
+            or account.broker_as_of or account.broker_binding or account.broker_snapshots
+            or account.external_cash_flows or account.receivables or account.dividend_tax_lots
+            or account.cash != account.initial_cash):
+        raise RuntimeError("observer configuration requires explicit reconciliation")
+    receipt = read(root, "latest.json")
+    if not {"state/account.json", receipt["result_path"]} <= set(receipt["files"]):
+        raise RuntimeError("observer configuration receipt lacks originals")
+    verify(root, receipt["files"])
+    if read(root, receipt["result_path"]) != previous:
+        raise RuntimeError("observer configuration receipt differs")
+    before, before_payload = economic_state_sha256(account), account.to_dict()
+    account.account_migrations.append({"migration_type": "configuration_binding",
+        "effective_config_sha256": current_hash, "from_config_sha256": legacy_hash,
+        "verified_previous_source_sha": previous["source_sha"], "metadata_labels_added": labels,
+        "economic_state_sha256_before": before, "economic_state_sha256_after": before})
+    after_payload = account.to_dict()
+    after_payload["account_migrations"] = before_payload["account_migrations"]
+    if after_payload != before_payload or economic_state_sha256(account) != before:
+        account.account_migrations.pop()
+        raise RuntimeError("observer configuration migration changed economic state")
+
+
 def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> dict:
     from uquant.account import (UnsupportedAccountSchemaError, economic_state_sha256, load_account,
                                 migrate_account_schema, migrate_code_identity, save_account)
     from uquant.config import DEFAULT_CONFIG, config_fingerprint
     from uquant.data import DataStore, LEGACY_ADJUSTMENT, RAW_ADJUSTMENT
     from uquant.engine import ProductionEngine, code_fingerprint
-    from uquant.types import AccountState
+    from uquant.models import AccountState
 
     day = metadata["target_date"]
     engine = ProductionEngine(work / "inputs")
@@ -144,13 +257,7 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
         account = migrate_code_identity(account_source, work / "account_before.json",
             new_code_hash=current_code_hash, acknowledge_code_change=True)
     if previous is not None and previous["config_sha256"] != config_fingerprint(DEFAULT_CONFIG):
-        # This account never executes orders; preserve its economic state and audit the new policy.
-        before = economic_state_sha256(account)
-        account.account_migrations.append({"migration_type": "configuration_rebind",
-            "from_config_sha256": previous["config_sha256"],
-            "to_config_sha256": config_fingerprint(DEFAULT_CONFIG)})
-        if economic_state_sha256(account) != before:
-            raise RuntimeError("observer configuration migration changed economic state")
+        rebind_config_labels(root, account, previous)
     if previous is not None and account.data_hash:
         old_basis = DataStore(root / "inputs").adjustment
         if old_basis != engine.data.adjustment:
@@ -165,6 +272,8 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
                 "as_of": account.data_hash_as_of, "from_data_hash": old_digest,
                 "to_data_hash": account.data_hash,
                 "source_snapshot": engine.data.snapshot_manifest["snapshot_id"]})
+        elif old_basis == RAW_ADJUSTMENT and account.data_hash_as_of and account.data_hash_symbols:
+            rebind_action_manifest_identity(root, account, engine.data, previous)
     save_account(account, work / "account_before.json")
     decision = engine.decide(symbols=SYMBOLS, as_of=day, account=account)
     account.pending_orders = list(decision.pending_orders)
@@ -278,11 +387,17 @@ def main() -> int:
             trace = trace.tb_next
         known_failures = {"historical data prefix differs from account state": "DATA_PREFIX_CHANGED",
                           "production code hash differs from account state": "CODE_IDENTITY_CHANGED",
+                          "account configuration identity differs from the selected economic core": "CONFIG_IDENTITY_CHANGED",
+                          "observer configuration requires explicit reconciliation": "CONFIG_RECONCILIATION_REQUIRED",
+                          "observer action manifest requires explicit reconciliation": "MANIFEST_IDENTITY_RECONCILIATION_REQUIRED",
+                          "observer action manifest facts differ": "HISTORICAL_ACTION_OR_PRICE_FACTS_CHANGED",
                           "unreconciled production claim": "CLAIM_UNRECONCILED"}
         result = {**metadata, "status": "FAILED", "actual_market_date": None,
                   "failure": {"stage": getattr(exc, "stage", stage), "type": type(exc).__name__,
                               "reason": ("MARKET_INPUT_UNAVAILABLE" if isinstance(exc, LiveInputError)
                                          else known_failures.get(str(exc), "UNCLASSIFIED")),
+                              "reason_code": (exc.reason_code if isinstance(exc, LiveInputError)
+                                              else known_failures.get(str(exc), "UNCLASSIFIED")),
                               "public_location": public_location},
                   "finished_at": datetime.now(SHANGHAI).isoformat()}
         if getattr(exc, "safe_summary", None):

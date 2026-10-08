@@ -104,6 +104,14 @@ jobs:
           if len(dates) < 121 or dates[-1] != '2026-07-21':
               sys.exit('Historical fixture calendar is unavailable.')
           synthetic = sorted(path.name for path in Path('data/frozen').glob('*.csv'))
+          frozen = Path('data/frozen')
+          expected_hashes = dict(line.split(maxsplit=1)[::-1]
+                                 for line in (frozen / 'SHA256SUMS').read_text().splitlines())
+          if set(expected_hashes) != set(synthetic):
+              sys.exit('Frozen inventory does not match its checksum manifest.')
+          if any(hashlib.sha256((frozen / name).read_bytes()).hexdigest() != digest
+                 for name, digest in expected_hashes.items()):
+              sys.exit('Frozen source data checksum validation failed.')
           for offset, name in enumerate(synthetic):
               with (fixture / name).open('w', newline='') as output:
                   writer = csv.writer(output)
@@ -126,7 +134,7 @@ jobs:
           html = work / 'daily.html'
           commands = [
               ('CLI startup', ['uquant', '--help']),
-              ('Frozen data integrity', ['python', '-m', 'uquant.validation', 'data-manifest', '--data-dir', 'data/frozen']),
+              ('Frozen data integrity', ['uquant', 'data-check', '--data-dir', 'data/frozen']),
               ('Isolated account initialization', [
                   'uquant', 'account-init', '--data-dir', str(fixture), '--symbols', *symbols,
                   '--date', '2026-07-20', '--cash', '2000000', '--output', str(account)]),

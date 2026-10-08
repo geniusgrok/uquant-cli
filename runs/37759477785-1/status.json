@@ -2,7 +2,6 @@
   "actual_market_date": null,
   "calendar_source": "akshare/Sina",
   "checked_at": "2026-10-08T17:51:16.807590+08:00",
-  "events_path": "runs/37759477785-1/events.json",
   "failure": {
     "public_location": "daily.py:117",
     "reason": "UNCLASSIFIED",
@@ -11,7 +10,6 @@
   },
   "finished_at": "2026-10-08T17:51:55.743085+08:00",
   "previous_session": "2026-09-30",
-  "record_path": "runs/37759477785-1/status.json",
   "requested_date": "2026-10-08",
   "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/37759477785",
   "runner_sha": "7cb010812c33ccaf66bb6eb3756f34df226b1875",

@@ -134,7 +134,7 @@ jobs:
           html = work / 'daily.html'
           commands = [
               ('CLI startup', ['uquant', '--help']),
-              ('Frozen data integrity', ['uquant', 'data-check', '--data-dir', 'data/frozen']),
+              ('Committed production raw snapshot', ['uquant', 'data-check', '--data-dir', 'data']),
               ('Isolated account initialization', [
                   'uquant', 'account-init', '--data-dir', str(fixture), '--symbols', *symbols,
                   '--date', '2026-07-20', '--cash', '2000000', '--output', str(account)]),
@@ -164,7 +164,7 @@ jobs:
                       'zero_amount_positive_volume', 'vwap_outside_range',
                       'preclose_without_event', 'decision_liquidity_unknown',
                   }
-                  found = sorted(checks & set(re.findall(r"'check': '([a-z_]+)'", private_log)))
+                  found = sorted(checks & set(re.findall(r'''["']check["']\s*:\s*["']([a-z_]+)["']''', private_log)))
                   if found:
                       print('Snapshot contract checks: ' + ', '.join(found))
                   frames = re.findall(r'File "[^"]*/([A-Za-z_][A-Za-z_0-9]*\.py)", line ([0-9]+), in ([A-Za-z_][A-Za-z_0-9]*)', private_log)

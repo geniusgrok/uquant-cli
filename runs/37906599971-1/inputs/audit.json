@@ -1,0 +1,79 @@
+{
+  "failures": {
+    "snapshot": {
+      "category": "provider",
+      "operation": "login",
+      "reason_code": "PROVIDER_UNAVAILABLE",
+      "type": "RuntimeError"
+    }
+  },
+  "provider": "baostock",
+  "recovery_attempts": [
+    {
+      "attempt": 1,
+      "failures": {
+        "snapshot": {
+          "anchor_rows": 1,
+          "category": "unavailable",
+          "end": "2026-10-09",
+          "first_date": "2026-10-08",
+          "last_date": "2026-10-08",
+          "normalized_response_rows": 1,
+          "normalized_response_sha256": "41b21d0e5dd729f0111072840dc8b32077ecbbbf37c42c849a04ba315793120a",
+          "operation": "stock_daily",
+          "raw_response_bytes": 209,
+          "raw_response_rows": 1,
+          "raw_response_sha256": "1e3b30010bccef825ac856167c86e43c907b9b01adad9a408bf6d2432823ad47",
+          "reason_code": "TARGET_BAR_UNAVAILABLE",
+          "response": {
+            "fields": [
+              "date",
+              "open",
+              "high",
+              "low",
+              "close",
+              "preclose",
+              "volume",
+              "amount",
+              "tradestatus",
+              "isST"
+            ],
+            "rows": [
+              [
+                "2026-10-08",
+                "54.5000",
+                "55.4900",
+                "52.3500",
+                "52.7000",
+                "54.8600",
+                "112999077",
+                "6057116675.9500",
+                "1",
+                "0"
+              ]
+            ]
+          },
+          "start": "2026-10-08",
+          "symbol": "sh600487",
+          "type": "MarketDataError"
+        }
+      },
+      "provider": "baostock",
+      "target_date": "2026-10-09"
+    },
+    {
+      "attempt": 2,
+      "failures": {
+        "snapshot": {
+          "category": "provider",
+          "operation": "login",
+          "reason_code": "PROVIDER_UNAVAILABLE",
+          "type": "RuntimeError"
+        }
+      },
+      "provider": "baostock",
+      "target_date": "2026-10-09"
+    }
+  ],
+  "target_date": "2026-10-09"
+}

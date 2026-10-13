@@ -379,120 +379,6 @@ def test_market_request_retries_transient_failures_only(monkeypatch):
     assert calls == 3
 
 
-def test_source_failover_validates_prices_and_units():
-    import pandas as pd
-    raw = pd.DataFrame({'date': ['2026-09-22', '2026-09-23'],
-                        'open': [10, 11], 'high': [12, 13], 'low': [9, 10],
-                        'close': [11, 12], 'volume': [1200, 1500], 'amount': [13000, 18000]})
-    invalid = raw.copy()
-    invalid.loc[1, 'high'] = 1
-    attempts = []
-
-    def disconnected():
-        raise ConnectionError('private diagnostic must not be recorded')
-
-    frame, provider, estimated = market._select_source(
-        {'Eastmoney': disconnected, 'Sina': lambda: invalid, 'Tencent': lambda: raw}, None,
-        lambda value, name: market._normalized(value, 'sz300308', '2026-09-23', name), attempts)
-    assert provider == 'Tencent' and not estimated
-    assert frame.iloc[-1]['volume'] == 1500
-    assert [item['status'] for item in attempts] == ['FAILED', 'FAILED', 'OK']
-    assert 'private diagnostic' not in str(attempts)
-    eastmoney, _ = market._normalized(raw, 'sz300308', '2026-09-23', 'Eastmoney')
-    assert eastmoney.iloc[-1]['volume'] == 150000
-    mainboard, _ = market._normalized(raw, 'sz000636', '2026-09-23', 'Tencent')
-    assert mainboard.iloc[-1]['volume'] == 150000
-    index, estimated = market._normalized(raw.drop(columns=['volume']).assign(amount=[100, 200]),
-                                         'sh000300', '2026-09-23', 'Tencent', index=True)
-    assert index.iloc[-1]['volume'] == 200 and estimated
-    with pytest.raises(ValueError, match='target close'):
-        market._normalized(raw, 'sz300308', '2026-09-24', 'Sina')
-
-
-def test_source_failover_prefers_last_healthy_source_and_all_fail_closed():
-    calls = []
-
-    def failed():
-        calls.append('failed')
-        raise ConnectionError('offline')
-
-    frame, provider, _ = market._select_source(
-        {'Eastmoney': failed, 'Sina': lambda: [1, 2]}, 'Sina', lambda value, name: (value, False), [])
-    assert provider == 'Sina' and not calls
-    with pytest.raises(ConnectionError):
-        market._select_source({'Eastmoney': failed, 'Sina': failed}, None,
-                              lambda value, name: (value, False), [])
-
-
-def test_adjusted_rebase_keeps_verified_prefix_and_rejects_other_revisions(tmp_path):
-    import pandas as pd
-
-    prior, today = tmp_path / "prior", tmp_path / "today"
-    prior.mkdir()
-    today.mkdir()
-    symbol = "sh688498"
-    old = pd.DataFrame({"date": ["2026-09-22", "2026-09-23"],
-                        "open": [100.0, 110.0], "high": [101.0, 111.0],
-                        "low": [99.0, 109.0], "close": [100.0, 110.0],
-                        "volume": [1200.0, 1300.0], "amount": [120000.0, 143000.0],
-                        "outstanding_share": [100000.0, 100000.0],
-                        "turnover": [.012, .013]})
-    fresh = pd.concat([old.assign(**{p: old[p] / 1.01 for p in ("open", "high", "low", "close")}),
-                       pd.DataFrame({"date": ["2026-09-24"], "open": [99.0], "high": [100.0],
-                                     "low": [98.0], "close": [99.0], "volume": [1400.0],
-                                     "amount": [138600.0]})], ignore_index=True)
-    old.to_csv(prior / (symbol + ".csv"), index=False)
-    fresh.to_csv(today / (symbol + ".csv"), index=False)
-    raw = old.tail(1)
-    raw.to_csv(prior / (symbol + ".raw.csv"), index=False)
-    pd.concat([raw, fresh.tail(1)]).to_csv(today / (symbol + ".raw.csv"), index=False)
-    factor = market._anchor_adjusted_history(today, prior, symbol, "2026-09-23", "2026-09-24")
-    anchored = pd.read_csv(today / (symbol + ".csv"))
-    assert factor == pytest.approx(1.01)
-    pd.testing.assert_frame_equal(anchored.iloc[:-1], old, check_dtype=False)
-    assert anchored.iloc[-1]["close"] == pytest.approx(99.99)
-
-    changed = fresh.copy()
-    changed.loc[0, "volume"] += 1
-    changed.to_csv(today / (symbol + ".csv"), index=False)
-    with pytest.raises(ValueError, match="nonprice"):
-        market._anchor_adjusted_history(today, prior, symbol, "2026-09-23", "2026-09-24")
-
-
-def test_previous_float_metadata_revision_preserves_account_history(tmp_path):
-    import pandas as pd
-
-    prior, today = tmp_path / "prior", tmp_path / "today"
-    prior.mkdir()
-    today.mkdir()
-    symbol = "sz300054"
-    old = pd.DataFrame({"date": ["2026-09-22", "2026-09-23"], "open": [70., 71.],
-                        "high": [72., 73.], "low": [69., 70.], "close": [71., 72.],
-                        "volume": [1000., 1100.], "amount": [71000., 79200.],
-                        "outstanding_share": [100000., 100000.], "turnover": [.01, .011]})
-    new = old.copy()
-    new.loc[0, "outstanding_share"] = 101000.
-    new.loc[0, "turnover"] = 1000 / 101000
-    new.loc[1, "outstanding_share"] = 101000.
-    new.loc[1, "turnover"] = 1100 / 101000
-    new = pd.concat([new, pd.DataFrame({"date": ["2026-09-24"], "open": [72.],
-                      "high": [73.], "low": [71.], "close": [72.], "volume": [1200.],
-                      "amount": [86400.], "outstanding_share": [101000.],
-                      "turnover": [1200 / 101000]})], ignore_index=True)
-    old.to_csv(prior / (symbol + ".csv"), index=False)
-    new.to_csv(today / (symbol + ".csv"), index=False)
-    old.tail(1).to_csv(prior / (symbol + ".raw.csv"), index=False)
-    new.tail(2).to_csv(today / (symbol + ".raw.csv"), index=False)
-    assert market._anchor_adjusted_history(today, prior, symbol, "2026-09-23", "2026-09-24") == 1
-    anchored = pd.read_csv(today / (symbol + ".csv"))
-    pd.testing.assert_frame_equal(anchored.iloc[:-1], old, check_dtype=False)
-    assert anchored.iloc[-1]["outstanding_share"] == 101000
-    new.loc[0, "volume"] += 1
-    new.to_csv(today / (symbol + ".csv"), index=False)
-    with pytest.raises(ValueError, match="nonprice"):
-        market._anchor_adjusted_history(today, prior, symbol, "2026-09-23", "2026-09-24")
-
-
 def test_provider_deadline_interrupts_stalled_call():
     import time
     import signal
@@ -718,6 +604,100 @@ def test_recovery_rechecks_risk_basket_with_native_snapshot_validator(tmp_path, 
     pd.testing.assert_frame_equal(pd.read_csv(destination / 'sh600487.csv').iloc[:-1], bars)
 
 
+def test_verified_suspension_advances_continuous_account_until_resumption(tmp_path, monkeypatch):
+    import pandas as pd
+    import uquant.data_update
+    import uquant.engine
+    from uquant.account import load_account
+
+    base, bars = raw_snapshot_fixture(tmp_path)
+    days = ['2026-09-28', '2026-09-29', '2026-09-30']
+    references = tuple(uquant.engine.REFERENCE_UNIVERSE[:4])
+    for symbol in references:
+        bars.to_csv(base / (symbol + '.csv'), index=False)
+    manifest = json.loads((base / 'DATA_MANIFEST.json').read_text())
+    import hashlib
+    manifest['files'].update({symbol + '.csv': hashlib.sha256((base / (symbol + '.csv')).read_bytes()).hexdigest()
+                              for symbol in references})
+    put(base, 'DATA_MANIFEST.json', manifest)
+    full = pd.concat([bars, *(bars.tail(1).assign(date=day) for day in days)], ignore_index=True)
+
+    class Provider:
+        name = 'baostock'
+        def stock_daily(self, symbol, start, end):
+            frame = full.loc[full['date'].between(start, end)]
+            halted = [day for day in days[:2] if start <= day <= end] if symbol == 'sz300308' else []
+            return frame.loc[~frame['date'].isin(halted)].reset_index(drop=True), halted
+        def dividends(self, symbol, start, end):
+            return []
+        def index_daily(self, symbol, start, end):
+            return full.loc[full['date'].between(start, end), list(uquant.data_update.INDEX_COLUMNS)].reset_index(drop=True)
+
+    monkeypatch.setattr(uquant.data_update, 'BaostockProvider', Provider)
+    monkeypatch.setattr(uquant.engine, 'REFERENCE_UNIVERSE', references)
+    monkeypatch.setattr(market, 'SYMBOLS', ('sz300308',))
+    monkeypatch.setattr(daily, 'SYMBOLS', ('sz300308',))
+    monkeypatch.setenv('UQUANT_SOURCE_DIR', str(tmp_path / 'source'))
+    (tmp_path / 'source').mkdir()
+    base.rename(tmp_path / 'source/data')
+    wait = Mock(side_effect=AssertionError('verified suspension must not retry'))
+    monkeypatch.setattr(market, 'pause', wait)
+    st, _ = store(tmp_path)
+    previous = '2026-09-24'
+    dates = [*bars['date'], *days]
+    first_report = None
+    previous_account, previous_migrations = None, None
+    for day in days:
+        context = daily.next_unfinished_session(st.root, {'target_date': days[-1],
+            'previous_session': days[-2], 'status': 'READY'}, dates)
+        # The first observation starts on the requested first date; all following
+        # calls recover the oldest gap from the actual saved receipt.
+        if previous == '2026-09-24':
+            context.update(target_date=day, previous_session=previous)
+        assert context['target_date'] == day and context['previous_session'] == previous
+        work = tmp_path / day
+        work.mkdir()
+        metadata = {**context, 'source_sha': 'a' * 40, 'runner_sha': 'b' * 40,
+            'run_url': 'https://github.com/geniusgrok/uquant-cli/actions/runs/123',
+            'started_at': day + 'T17:00:00+08:00'}
+        outcome = daily.run_once(st, work, metadata)
+        assert outcome['status'] in {'COMPLETE', 'PARTIAL'}
+        quote = json.loads((work / 'inputs/audit.json').read_text())['quotes']['sz300308']
+        saved = pd.read_csv(work / 'inputs/sz300308.csv')
+        check = uquant.data_update.check_snapshot(work / 'inputs', as_of=day, daily=True,
+                                                 required=['sz300308', 'sh600487'])
+        assert check['ok']
+        if day != days[-1]:
+            assert quote['status'] == 'SUSPENDED'
+            assert quote['close'] is None and quote['change_pct'] is None
+            assert quote['last_traded_date'] == '2026-09-24'
+            assert len(saved) == len(bars) and day not in set(saved['date'])
+            assert '停牌（SUSPENDED）' in (work / 'report.md').read_text()
+        else:
+            assert quote['date'] == day and quote['close'] == 10 and quote['change_pct'] == 0
+            assert 'status' not in quote and len(saved) == len(bars) + 1
+        after = load_account(st.root / 'state/account.json')
+        assert after.last_successful_run == day and after.data_hash_as_of == day
+        assert after.cash == after.initial_cash
+        assert not after.positions and not after.fills
+        if previous != '2026-09-24':
+            assert (work / 'account_before.json').read_bytes() == previous_account
+            assert after.account_migrations == previous_migrations
+            assert (st.root / f'reports/{days[0]}.md').read_bytes() == first_report
+        else:
+            first_report = (st.root / f'reports/{day}.md').read_bytes()
+        previous_account = (st.root / 'state/account.json').read_bytes()
+        previous_migrations = after.account_migrations
+        previous = day
+    duplicate = tmp_path / 'duplicate'
+    duplicate.mkdir()
+    with patch.object(daily, 'refresh') as refresh, patch.object(daily, 'compute') as compute:
+        assert daily.run_once(st, duplicate, metadata)['status'] == 'REUSED'
+        refresh.assert_not_called()
+        compute.assert_not_called()
+    wait.assert_not_called()
+
+
 @pytest.mark.parametrize('kind,reason', [('numeric', 'RESPONSE_FORMAT_INVALID'),
     ('unknown_status', 'RESPONSE_FORMAT_INVALID'), ('oversize', 'RESPONSE_TOO_LARGE')])
 def test_failed_stock_response_is_preserved_before_numeric_conversion(tmp_path, monkeypatch, kind, reason):
@@ -765,6 +745,92 @@ def test_failed_stock_response_is_preserved_before_numeric_conversion(tmp_path, 
         body = json.dumps(detail['response'], ensure_ascii=False, separators=(',', ':')).encode()
         assert detail['raw_response_bytes'] == len(body)
         assert detail['raw_response_sha256'] == hashlib.sha256(body).hexdigest()
+    wait.assert_not_called()
+
+
+@pytest.mark.parametrize('new_stock', [False, True], ids=['incremental', 'new-stock'])
+@pytest.mark.parametrize('reverse', [False, True], ids=['traded-first', 'halted-first'])
+def test_conflicting_stock_day_is_rejected_before_quote_decision_or_publication(tmp_path, monkeypatch,
+                                                                               new_stock, reverse):
+    from types import SimpleNamespace
+    import uquant.data_update
+    import uquant.engine
+
+    base, bars = raw_snapshot_fixture(tmp_path)
+    if new_stock:
+        (base / 'sz300308.csv').unlink()
+        manifest = json.loads((base / 'DATA_MANIFEST.json').read_text())
+        manifest['files'].pop('sz300308.csv')
+        put(base, 'DATA_MANIFEST.json', manifest)
+    source = tmp_path / 'source'
+    source.mkdir()
+    base.rename(source / 'data')
+    base = source / 'data'
+    original = {path.name: path.read_bytes() for path in base.iterdir()}
+    fields = 'date,open,high,low,close,preclose,volume,amount,tradestatus,isST'.split(',')
+    conflict = [['2026-09-28', '10', '11', '9', '10', '10', '1000', '10000', '1', '0'],
+                ['2026-09-28', '', '', '', '', '', '', '', '0', '0']]
+    if reverse:
+        conflict.reverse()
+    calls = []
+
+    class Response:
+        error_code = '0'
+        def __init__(self, rows):
+            self.fields, self.rows, self.index = fields, rows, -1
+        def next(self):
+            self.index += 1
+            return self.index < len(self.rows)
+        def get_row_data(self):
+            return self.rows[self.index]
+
+    def query(code, *args, **kwargs):
+        calls.append((code, kwargs['start_date']))
+        history = bars.loc[bars['date'].between(kwargs['start_date'], kwargs['end_date'])]
+        rows = [[str(row[field]) for field in fields[:8]] + ['1', '0']
+                for row in history.to_dict('records')]
+        tail = conflict if code == 'sz.300308' else [next(row for row in conflict if row[-2] == '1')]
+        return Response(rows + tail)
+
+    class Provider(uquant.data_update.BaostockProvider):
+        def __init__(self):
+            self._bs = SimpleNamespace(query_history_k_data_plus=query)
+        def dividends(self, symbol, start, end):
+            return []
+        def index_daily(self, symbol, start, end):
+            import pandas as pd
+            return pd.concat([bars.tail(1), bars.tail(1).assign(date=end)], ignore_index=True)[
+                list(uquant.data_update.INDEX_COLUMNS)]
+
+    monkeypatch.setattr(uquant.data_update, 'BaostockProvider', Provider)
+    monkeypatch.setattr(uquant.engine, 'REFERENCE_UNIVERSE', ('sh600487',))
+    monkeypatch.setattr(market, 'SYMBOLS', ('sz300308',))
+    monkeypatch.setenv('UQUANT_SOURCE_DIR', str(source))
+    wait = Mock(side_effect=AssertionError('invalid daily records must not retry'))
+    monkeypatch.setattr(market, 'pause', wait)
+    st, _ = store(tmp_path)
+    work = tmp_path / 'work'
+    work.mkdir()
+    metadata = {'status': 'READY', 'target_date': '2026-09-28', 'previous_session': '2026-09-24'}
+    with patch.object(daily, 'compute') as compute, patch.object(st, 'publish',
+            side_effect=AssertionError('conflicting raw input must not reach claim publication')) as publish:
+        with pytest.raises(market.LiveInputError) as failed:
+            daily.run_once(st, work, metadata)
+        compute.assert_not_called()
+        publish.assert_not_called()
+    assert failed.value.stage == 'MARKET_DATA'
+    assert failed.value.reason_code == 'RESPONSE_FORMAT_INVALID'
+    audit = json.loads((work / 'inputs/audit.json').read_text())
+    detail = audit['failures']['snapshot']
+    assert detail['operation'] == 'stock_daily' and detail['symbol'] == 'sz300308'
+    assert detail['response']['rows'][-2:] == conflict
+    assert 'quotes' not in audit
+    assert not list((work / 'inputs').glob('*.csv'))
+    assert not list((st.root / 'claims').glob('*.json'))
+    assert not (st.root / 'state/account.json').exists()
+    assert not (st.root / 'latest.json').exists()
+    assert original == {path.name: path.read_bytes() for path in base.iterdir()}
+    assert calls[-1] == ('sz.300308', bars['date'].iloc[0] if new_stock else '2026-09-24')
     wait.assert_not_called()
 
 

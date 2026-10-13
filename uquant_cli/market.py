@@ -1,10 +1,9 @@
-"""多源实时行情适配，所有来源均经过生产数据校验。"""
+"""延伸经生产校验的 Baostock 原始快照；AkShare 仅提供交易日历。"""
 from __future__ import annotations
 
 import hashlib
 import importlib
 import json
-import math
 import os
 import shutil
 import signal
@@ -171,8 +170,9 @@ def session_context(dates: list[str], now: datetime) -> dict:
 
 
 def calendar_now(now: datetime) -> tuple[dict, list[str]]:
-    ak = importlib.import_module("akshare")
-    frame = ak.tool_trade_date_hist_sina()
+    with request_deadline():
+        ak = importlib.import_module("akshare")
+        frame = ak.tool_trade_date_hist_sina()
     dates = pd.to_datetime(frame["trade_date"], errors="raise").dt.strftime("%Y-%m-%d").tolist()
     # Decisions only need recent sessions, not historical exchange weekend regimes.
     start = f"{now.astimezone(SHANGHAI).year - 1}-01-01"
@@ -197,94 +197,12 @@ def request_deadline(seconds: float = 25):
             signal.setitimer(signal.ITIMER_REAL, *old_timer)
 
 
-def _normalized(raw, symbol: str, day: str, provider: str, *, index: bool = False, minimum_rows: int = 2):
-    from uquant.data import DataStore
-
-    mapping = {"日期": "date", "开盘": "open", "最高": "high", "最低": "low",
-               "收盘": "close", "成交量": "volume", "成交额": "amount"}
-    frame = raw.rename(columns=mapping).copy()
-    if provider == "Eastmoney":
-        frame["volume"] = pd.to_numeric(frame["volume"], errors="raise") * 100
-    elif provider == "Tencent" and index:
-        # 锁定版本的指数接口将第六项成交量误命名为 amount，实际单位为股。
-        frame = frame.rename(columns={"amount": "volume"})
-    elif provider == "Tencent" and symbol.startswith("sz000"):
-        # 锁定版本误将深市主板视为指数，其股票成交量仍需从手转换为股。
-        frame["volume"] = pd.to_numeric(frame["volume"], errors="raise") * 100
-    dates = pd.to_datetime(frame["date"], errors="raise")
-    frame = frame.loc[dates <= pd.Timestamp(day)].copy()
-    estimated_amount = "amount" not in frame
-    if not estimated_amount and pd.to_numeric(frame["amount"], errors="coerce").isna().any():
-        raise ValueError("provider amount missing")
-    frame = DataStore._validate(frame, symbol)
-    if len(frame) < minimum_rows or str(frame.index[-1].date()) != day:
-        raise ValueError("target close or history missing")
-    return frame, estimated_amount
-
-
-def _select_source(providers: dict, preferred: str | None, normalize, attempts: list):
-    names = list(providers)
-    if preferred in names:
-        names.remove(preferred)
-        names.insert(0, preferred)
-    last = None
-    for name in names:
-        try:
-            with request_deadline():
-                frame, estimated = normalize(providers[name](), name)
-            attempts.append({"provider": name, "status": "OK", "rows": len(frame)})
-            return frame, name, estimated
-        except Exception as exc:
-            last = exc
-            attempts.append({"provider": name, "status": "FAILED",
-                             "type": type(exc).__name__, "category": _failure_category(exc)})
-    raise last if last is not None else ValueError("no market provider")
-
-
-def _anchor_adjusted_history(root: Path, prior_root: Path, symbol: str, previous: str, day: str) -> float | None:
-    """Keep the account's verified price scale when a provider rebases qfq history."""
-    old = pd.read_csv(prior_root / (symbol + ".csv"))
-    current_path = root / (symbol + ".csv")
-    current = pd.read_csv(current_path)
-    prefix = current.loc[current["date"] <= previous].reset_index(drop=True)
-    if not old["date"].equals(prefix["date"]) or len(current) != len(old) + 1 or current.iloc[-1]["date"] != day:
-        raise ValueError("adjusted history dates differ from verified account input")
-    price = ["open", "high", "low", "close"]
-    float_metadata = ["outstanding_share", "turnover"]
-    stable = [column for column in old if column not in (*price, *float_metadata)]
-    if not old[stable].equals(prefix[stable]):
-        raise ValueError("adjusted history nonprice fields changed")
-    metadata_changed = not old[float_metadata].equals(prefix[float_metadata])
-    if old.equals(prefix):
-        return None
-    # A real ex-date rebase changes the adjusted scale but not the preceding raw close.
-    old_raw = pd.read_csv(prior_root / (symbol + ".raw.csv"))
-    new_raw = pd.read_csv(root / (symbol + ".raw.csv"))
-    prior_raw = old_raw.loc[old_raw["date"] == previous]
-    current_raw = new_raw.loc[new_raw["date"] == previous]
-    raw_columns = ["date", *price, "volume", "amount"] if metadata_changed else list(old_raw)
-    if (len(prior_raw) != 1 or not prior_raw[raw_columns].reset_index(drop=True).equals(
-            current_raw[raw_columns].reset_index(drop=True))):
-        raise ValueError("raw history changed with adjusted history")
-    factor = float(old.iloc[-1]["close"] / prefix.iloc[-1]["close"])
-    if not math.isfinite(factor) or factor <= 0 or not ((old[price] - prefix[price] * factor).abs() <= 0.011).all().all():
-        raise ValueError("adjusted history is not a uniform price rebase")
-    if metadata_changed and not old[price].equals(prefix[price]):
-        raise ValueError("price and float metadata both changed")
-    today = current.tail(1).copy()
-    today[price] = today[price] * factor
-    pd.concat([old, today], ignore_index=True).to_csv(current_path, index=False)
-    return factor
-
-
-def _refresh_once(root: Path, day: str, previous: str, *, prior_audit: dict | None = None,
-                  prior_root: Path | None = None) -> dict:
+def _refresh_once(root: Path, day: str, previous: str, *, prior_root: Path | None = None) -> dict:
     """Extend the verified raw snapshot with the production data-update validator."""
     from uquant.data import DataStore
     from uquant.data_update import BaostockProvider, STOCK_COLUMNS, update_snapshot
     from uquant.engine import INDEX_SYMBOLS, REFERENCE_UNIVERSE
 
-    del prior_audit
     candidate = DataStore(prior_root) if prior_root is not None and (prior_root / "DATA_MANIFEST.json").exists() else None
     base = candidate if candidate is not None and candidate.snapshot_manifest.get("price_basis") == "raw" else DataStore(
         Path(os.environ["UQUANT_SOURCE_DIR"]) / "data")
@@ -330,7 +248,8 @@ def _refresh_once(root: Path, day: str, previous: str, *, prior_audit: dict | No
                     valid_dates = not parsed.isna().any() and dates.equals(parsed.dt.strftime("%Y-%m-%d"))
                 except (TypeError, ValueError):
                     valid_dates = False
-                if (not valid_dates or any(row[-2] not in {"0", "1"} or row[-1] not in {"0", "1"}
+                if (not valid_dates or dates.duplicated().any()
+                        or any(row[-2] not in {"0", "1"} or row[-1] not in {"0", "1"}
                                            for row in rows)):
                     raise MarketDataError("RESPONSE_FORMAT_INVALID")
                 if ((dates < diagnostic["start"]).any() or (dates > diagnostic["end"]).any()):
@@ -384,7 +303,14 @@ def _refresh_once(root: Path, day: str, previous: str, *, prior_audit: dict | No
         quotes = {}
         for symbol in SYMBOLS:
             frame = data.load(symbol, as_of=day)
-            if frame.empty or str(frame.index[-1].date()) != day:
+            if frame.empty:
+                raise ValueError("target raw quote missing")
+            if day in data.snapshot_manifest.get("suspended_dates", {}).get(symbol, []):
+                quotes[symbol] = {"date": day, "status": "SUSPENDED", "close": None,
+                    "change_pct": None, "last_traded_date": str(frame.index[-1].date()),
+                    "adjustment": "raw", "provider": "baostock"}
+                continue
+            if str(frame.index[-1].date()) != day:
                 raise ValueError("target raw quote missing")
             row = frame.iloc[-1]
             quotes[symbol] = {"date": day, "close": float(row["close"]),
@@ -405,8 +331,7 @@ def _refresh_once(root: Path, day: str, previous: str, *, prior_audit: dict | No
         shutil.rmtree(prepared, ignore_errors=True)
 
 
-def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = None,
-            prior_root: Path | None = None) -> dict:
+def refresh(root: Path, day: str, previous: str, *, prior_root: Path | None = None) -> dict:
     """Wait at most 60 + 120 seconds only for a verified missing target bar.
 
     Each retry rebuilds the complete production snapshot; no partial snapshot,
@@ -415,7 +340,7 @@ def refresh(root: Path, day: str, previous: str, *, prior_audit: dict | None = N
     attempts = []
     for attempt in range(3):
         try:
-            audit = _refresh_once(root, day, previous, prior_audit=prior_audit, prior_root=prior_root)
+            audit = _refresh_once(root, day, previous, prior_root=prior_root)
             if attempts:
                 audit["recovery_attempts"] = attempts
                 put(root, "audit.json", audit)

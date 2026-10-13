@@ -1,0 +1,3 @@
+akshare==1.18.83
+# jsonpath ships a source distribution; constrain its setuptools build too.
+setuptools==84.0.0

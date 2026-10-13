@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from runner import main
-from bootstrap import SOURCE_REPOSITORY
+from bootstrap import SOURCE_REPOSITORY, prepare
 from uquant_cli.store import GitStore
 
 
@@ -51,6 +51,28 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(text.count("token: ${{ secrets.UQUANT_READ_TOKEN }}"), 1)
         self.assertIn("ref: uquant-daily-reports", text)
         self.assertIn("disabled://source-read-only", bootstrap)
+
+    def test_adapter_install_requires_hashes_and_current_production_constraints(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source"
+            (source / "uquant").mkdir(parents=True)
+            with patch("bootstrap.CLI_ROOT", root), patch.dict(os.environ, {"UQUANT_SOURCE_DIR": str(source)}), \
+                    patch("bootstrap.subprocess.run"), \
+                    patch("bootstrap.subprocess.check_output", return_value="a" * 40), \
+                    patch("bootstrap.call", return_value=0) as call:
+                prepare(root / "operation", [])
+            commands = [item.args[0] for item in call.call_args_list]
+            self.assertIn(["uv", "sync", "--frozen", "--extra", "data"], commands)
+            exported = next(command for command in commands if command[:2] == ["uv", "export"])
+            self.assertIn("--frozen", exported)
+            self.assertIn("--all-extras", exported)
+            adapter = commands[-1]
+            self.assertIn("--require-hashes", adapter)
+            self.assertEqual(adapter[adapter.index("--build-constraints") + 1], str(root / "requirements-market.lock"))
+            self.assertEqual(adapter[adapter.index("--constraint") + 1], exported[-1])
+            self.assertEqual(adapter[adapter.index("--requirements") + 1], str(root / "requirements-market.lock"))
 
     def test_workflow_writes_only_to_cli_and_retries_late_market_data(self):
         text = Path(".github/workflows/uquant-daily-report.yml").read_text()

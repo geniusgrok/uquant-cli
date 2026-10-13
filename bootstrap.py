@@ -49,7 +49,14 @@ def prepare(root: Path, events: list, *, validation: bool = False) -> tuple[Path
     for command in (["python", "-m", "pip", "install", "--disable-pip-version-check", "uv==0.11.33"], install):
         if call(command, source, env, events, "LOCKED_INSTALL"):
             raise RuntimeError("locked installation failed")
+    constraints = root / "production-constraints.txt"
+    if call(["uv", "export", "--frozen", "--all-extras", "--no-dev", "--no-emit-project",
+             "--no-hashes", "--output-file", str(constraints)], source, env, events, "LOCKED_INSTALL"):
+        raise RuntimeError("production constraints export failed")
     if call(["uv", "pip", "install", "--python", str(root / "venv/bin/python"),
-             "akshare==1.18.83"], source, env, events, "MARKET_ADAPTER_INSTALL"):
+             "--require-hashes", "--constraint", str(constraints),
+             "--build-constraints", str(CLI_ROOT / "requirements-market.lock"),
+             "--requirements", str(CLI_ROOT / "requirements-market.lock")],
+            source, env, events, "MARKET_ADAPTER_INSTALL"):
         raise RuntimeError("market adapter installation failed")
     return source, env

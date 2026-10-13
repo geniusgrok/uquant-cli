@@ -156,11 +156,14 @@ def render(result: dict) -> str:
               "|---|---|---|---|---|---|---|"]
     for row in result["signals"]["stocks"]:
         quote = row.get("quote") or {}
+        quote_text = display(quote.get("close")) + " / " + display(quote.get("change_pct"))
+        if quote.get("status") == "SUSPENDED":
+            quote_text = "停牌（SUSPENDED）；" + quote_text + "；最后成交日：" + display(quote.get("last_traded_date"))
         orders = [{key: order.get(key) for key in ("side", "target_weight", "signal_date")}
                   for order in row["orders"]]
         lines.append("| " + " | ".join([
             display(row["symbol"][2:] + " " + row["name"]),
-            display(quote.get("close")) + " / " + display(quote.get("change_pct")),
+            quote_text,
             display(row.get("trend_evidence")), display(row.get("qualification")),
             display(row.get("risk_limits")),
             display(orders) if orders else "未生成订单意图",
@@ -190,4 +193,6 @@ def render(result: dict) -> str:
               "未提供的字段不解释为零、无风险或无变化。风险等级、风险限制和仓位上限须结合阅读。",
               "零数量、受阻信号或订单意图不代表可执行买入或已成交。",
               "盘后信号仅供下一可交易日人工核对；本仓库不连接券商、不自动下单。"]
+    if any((row.get("quote") or {}).get("status") == "SUSPENDED" for row in result["signals"]["stocks"]):
+        lines.append("SUSPENDED 表示原生快照已核验停牌；当日成交收盘价及涨跌幅不可用，最后成交日不作为当日报价。")
     return "\n".join(lines) + "\n"

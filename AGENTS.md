@@ -11,3 +11,5 @@
 长期模型分工：对话/分析/代码审查使用 GPT-6 Astra（ultra）；编码改造/驱动 Codex 使用 GPT-6.1-Sol（xhigh）。工具不支持或无法确认时如实说明，不假装切换；此偏好不能改写助手系统指令或平台权限。
 
 按当前授权与仓库流程交付；明确授权且保护允许的纯文档改动可直推 main。所有推送基于最新远端 SHA 做乐观保护，不 force，完成后回读核验；不覆盖未知工作或改写历史。
+
+以后新提交使用已核本人 Git 身份 `geniusgrok <flyvarfdu@gmail.com>`；必要配置只改仓库本地 `user.name`/`user.email`。不得新增 Cursor Agent、Codex 或其他 AI 机器人作为 author 或 `Co-authored-by`。保留真实人类及第三方版权署名，不重写历史或移动 tags。云工具无 author 设置接口或固定 committer 时，发布前核验实际字段并如实报告；AGENTS.md 不能强制平台署名。

@@ -748,6 +748,92 @@ def test_failed_stock_response_is_preserved_before_numeric_conversion(tmp_path, 
     wait.assert_not_called()
 
 
+@pytest.mark.parametrize('new_stock', [False, True], ids=['incremental', 'new-stock'])
+@pytest.mark.parametrize('reverse', [False, True], ids=['traded-first', 'halted-first'])
+def test_conflicting_stock_day_is_rejected_before_quote_decision_or_publication(tmp_path, monkeypatch,
+                                                                               new_stock, reverse):
+    from types import SimpleNamespace
+    import uquant.data_update
+    import uquant.engine
+
+    base, bars = raw_snapshot_fixture(tmp_path)
+    if new_stock:
+        (base / 'sz300308.csv').unlink()
+        manifest = json.loads((base / 'DATA_MANIFEST.json').read_text())
+        manifest['files'].pop('sz300308.csv')
+        put(base, 'DATA_MANIFEST.json', manifest)
+    source = tmp_path / 'source'
+    source.mkdir()
+    base.rename(source / 'data')
+    base = source / 'data'
+    original = {path.name: path.read_bytes() for path in base.iterdir()}
+    fields = 'date,open,high,low,close,preclose,volume,amount,tradestatus,isST'.split(',')
+    conflict = [['2026-09-28', '10', '11', '9', '10', '10', '1000', '10000', '1', '0'],
+                ['2026-09-28', '', '', '', '', '', '', '', '0', '0']]
+    if reverse:
+        conflict.reverse()
+    calls = []
+
+    class Response:
+        error_code = '0'
+        def __init__(self, rows):
+            self.fields, self.rows, self.index = fields, rows, -1
+        def next(self):
+            self.index += 1
+            return self.index < len(self.rows)
+        def get_row_data(self):
+            return self.rows[self.index]
+
+    def query(code, *args, **kwargs):
+        calls.append((code, kwargs['start_date']))
+        history = bars.loc[bars['date'].between(kwargs['start_date'], kwargs['end_date'])]
+        rows = [[str(row[field]) for field in fields[:8]] + ['1', '0']
+                for row in history.to_dict('records')]
+        tail = conflict if code == 'sz.300308' else [next(row for row in conflict if row[-2] == '1')]
+        return Response(rows + tail)
+
+    class Provider(uquant.data_update.BaostockProvider):
+        def __init__(self):
+            self._bs = SimpleNamespace(query_history_k_data_plus=query)
+        def dividends(self, symbol, start, end):
+            return []
+        def index_daily(self, symbol, start, end):
+            import pandas as pd
+            return pd.concat([bars.tail(1), bars.tail(1).assign(date=end)], ignore_index=True)[
+                list(uquant.data_update.INDEX_COLUMNS)]
+
+    monkeypatch.setattr(uquant.data_update, 'BaostockProvider', Provider)
+    monkeypatch.setattr(uquant.engine, 'REFERENCE_UNIVERSE', ('sh600487',))
+    monkeypatch.setattr(market, 'SYMBOLS', ('sz300308',))
+    monkeypatch.setenv('UQUANT_SOURCE_DIR', str(source))
+    wait = Mock(side_effect=AssertionError('invalid daily records must not retry'))
+    monkeypatch.setattr(market, 'pause', wait)
+    st, _ = store(tmp_path)
+    work = tmp_path / 'work'
+    work.mkdir()
+    metadata = {'status': 'READY', 'target_date': '2026-09-28', 'previous_session': '2026-09-24'}
+    with patch.object(daily, 'compute') as compute, patch.object(st, 'publish',
+            side_effect=AssertionError('conflicting raw input must not reach claim publication')) as publish:
+        with pytest.raises(market.LiveInputError) as failed:
+            daily.run_once(st, work, metadata)
+        compute.assert_not_called()
+        publish.assert_not_called()
+    assert failed.value.stage == 'MARKET_DATA'
+    assert failed.value.reason_code == 'RESPONSE_FORMAT_INVALID'
+    audit = json.loads((work / 'inputs/audit.json').read_text())
+    detail = audit['failures']['snapshot']
+    assert detail['operation'] == 'stock_daily' and detail['symbol'] == 'sz300308'
+    assert detail['response']['rows'][-2:] == conflict
+    assert 'quotes' not in audit
+    assert not list((work / 'inputs').glob('*.csv'))
+    assert not list((st.root / 'claims').glob('*.json'))
+    assert not (st.root / 'state/account.json').exists()
+    assert not (st.root / 'latest.json').exists()
+    assert original == {path.name: path.read_bytes() for path in base.iterdir()}
+    assert calls[-1] == ('sz.300308', bars['date'].iloc[0] if new_stock else '2026-09-24')
+    wait.assert_not_called()
+
+
 def action_identity_fixture(tmp_path):
     import hashlib
     import shutil

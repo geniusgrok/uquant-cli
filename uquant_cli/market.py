@@ -248,7 +248,8 @@ def _refresh_once(root: Path, day: str, previous: str, *, prior_root: Path | Non
                     valid_dates = not parsed.isna().any() and dates.equals(parsed.dt.strftime("%Y-%m-%d"))
                 except (TypeError, ValueError):
                     valid_dates = False
-                if (not valid_dates or any(row[-2] not in {"0", "1"} or row[-1] not in {"0", "1"}
+                if (not valid_dates or dates.duplicated().any()
+                        or any(row[-2] not in {"0", "1"} or row[-1] not in {"0", "1"}
                                            for row in rows)):
                     raise MarketDataError("RESPONSE_FORMAT_INVALID")
                 if ((dates < diagnostic["start"]).any() or (dates > diagnostic["end"]).any()):

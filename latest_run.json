@@ -1,10 +1,25 @@
 {
-  "events_path": "runs/38553885629-1/events.json",
-  "finished_at": "2026-10-14T19:03:46.367999+08:00",
-  "record_path": "runs/38553885629-1/status.json",
-  "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/38553885629",
+  "actual_market_date": null,
+  "calendar_source": "akshare/Sina",
+  "checked_at": "2026-10-15T17:00:29.593188+08:00",
+  "events_path": "runs/38709709178-1/events.json",
+  "failure": {
+    "public_location": "market.py:403",
+    "reason": "MARKET_INPUT_UNAVAILABLE",
+    "reason_code": "PROVIDER_UNAVAILABLE",
+    "stage": "MARKET_DATA",
+    "type": "LiveInputError"
+  },
+  "failure_summary": "1项行情未通过校验（数据接口异常1项）；未使用旧数据替代。",
+  "finished_at": "2026-10-15T17:00:39.982648+08:00",
+  "previous_session": "2026-10-14",
+  "record_path": "runs/38709709178-1/status.json",
+  "requested_date": "2026-10-15",
+  "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/38709709178",
+  "runner_sha": "5d4285f243688f5d897859bfbc7fe8c577dab81b",
+  "selection_reason": "当日已过15:30收盘确认时点",
   "source_sha": "01782415c5cb9a8eda1c5bbb3c191325ea76faac",
-  "started_at": "2026-10-14T19:03:38.036870+08:00",
-  "status": "REUSED",
-  "target_date": "2026-10-14"
+  "started_at": "2026-10-15T17:00:22.888967+08:00",
+  "status": "FAILED",
+  "target_date": "2026-10-15"
 }

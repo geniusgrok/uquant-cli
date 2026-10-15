@@ -5,9 +5,6 @@ on:
     - cron: '31 8 * * 1-5' # 北京时间 16:31
     - cron: '36 9 * * 1-5' # 北京时间 17:36，行情晚到时自动补跑
     - cron: '36 10 * * 1-5' # 北京时间 18:36，第二次补跑
-  push:
-    branches: [main]
-    paths: ['uquant_cli/**', 'bootstrap.py', 'preflight.py', 'runner.py', 'publish_main_report.py', '.github/workflows/uquant-daily-report.yml']
 permissions:
   contents: read
 concurrency:
@@ -24,11 +21,11 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-      - name: Read production main only
+      - name: Read approved production source only
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           repository: geniusgrok/uquant
-          ref: main
+          ref: 01782415c5cb9a8eda1c5bbb3c191325ea76faac
           token: ${{ secrets.UQUANT_READ_TOKEN }}
           persist-credentials: false
           path: .runtime/production

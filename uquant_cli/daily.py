@@ -253,7 +253,7 @@ def compute(root: Path, work: Path, metadata: dict, previous: dict | None) -> di
         raise RuntimeError("real or executed account input is not authorized for public publication")
     current_code_hash = code_fingerprint() if previous is not None else None
     if previous is not None and account.code_hash != current_code_hash:
-        # This observer follows reviewed production main. Preserve every economic state field.
+        # Source upgrades require explicit approval. Preserve every economic state field.
         account = migrate_code_identity(account_source, work / "account_before.json",
             new_code_hash=current_code_hash, acknowledge_code_change=True)
     if previous is not None and previous["config_sha256"] != config_fingerprint(DEFAULT_CONFIG):

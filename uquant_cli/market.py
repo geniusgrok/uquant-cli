@@ -1,10 +1,9 @@
-"""多源实时行情适配，所有来源均经过生产数据校验。"""
+"""增量延伸原始价格快照，并用生产数据合同校验全部输入。"""
 from __future__ import annotations
 
 import hashlib
 import importlib
 import json
-import math
 import os
 import shutil
 import signal
@@ -195,86 +194,6 @@ def request_deadline(seconds: float = 25):
         signal.signal(signal.SIGALRM, old_handler)
         if old_timer[0]:
             signal.setitimer(signal.ITIMER_REAL, *old_timer)
-
-
-def _normalized(raw, symbol: str, day: str, provider: str, *, index: bool = False, minimum_rows: int = 2):
-    from uquant.data import DataStore
-
-    mapping = {"日期": "date", "开盘": "open", "最高": "high", "最低": "low",
-               "收盘": "close", "成交量": "volume", "成交额": "amount"}
-    frame = raw.rename(columns=mapping).copy()
-    if provider == "Eastmoney":
-        frame["volume"] = pd.to_numeric(frame["volume"], errors="raise") * 100
-    elif provider == "Tencent" and index:
-        # 锁定版本的指数接口将第六项成交量误命名为 amount，实际单位为股。
-        frame = frame.rename(columns={"amount": "volume"})
-    elif provider == "Tencent" and symbol.startswith("sz000"):
-        # 锁定版本误将深市主板视为指数，其股票成交量仍需从手转换为股。
-        frame["volume"] = pd.to_numeric(frame["volume"], errors="raise") * 100
-    dates = pd.to_datetime(frame["date"], errors="raise")
-    frame = frame.loc[dates <= pd.Timestamp(day)].copy()
-    estimated_amount = "amount" not in frame
-    if not estimated_amount and pd.to_numeric(frame["amount"], errors="coerce").isna().any():
-        raise ValueError("provider amount missing")
-    frame = DataStore._validate(frame, symbol)
-    if len(frame) < minimum_rows or str(frame.index[-1].date()) != day:
-        raise ValueError("target close or history missing")
-    return frame, estimated_amount
-
-
-def _select_source(providers: dict, preferred: str | None, normalize, attempts: list):
-    names = list(providers)
-    if preferred in names:
-        names.remove(preferred)
-        names.insert(0, preferred)
-    last = None
-    for name in names:
-        try:
-            with request_deadline():
-                frame, estimated = normalize(providers[name](), name)
-            attempts.append({"provider": name, "status": "OK", "rows": len(frame)})
-            return frame, name, estimated
-        except Exception as exc:
-            last = exc
-            attempts.append({"provider": name, "status": "FAILED",
-                             "type": type(exc).__name__, "category": _failure_category(exc)})
-    raise last if last is not None else ValueError("no market provider")
-
-
-def _anchor_adjusted_history(root: Path, prior_root: Path, symbol: str, previous: str, day: str) -> float | None:
-    """Keep the account's verified price scale when a provider rebases qfq history."""
-    old = pd.read_csv(prior_root / (symbol + ".csv"))
-    current_path = root / (symbol + ".csv")
-    current = pd.read_csv(current_path)
-    prefix = current.loc[current["date"] <= previous].reset_index(drop=True)
-    if not old["date"].equals(prefix["date"]) or len(current) != len(old) + 1 or current.iloc[-1]["date"] != day:
-        raise ValueError("adjusted history dates differ from verified account input")
-    price = ["open", "high", "low", "close"]
-    float_metadata = ["outstanding_share", "turnover"]
-    stable = [column for column in old if column not in (*price, *float_metadata)]
-    if not old[stable].equals(prefix[stable]):
-        raise ValueError("adjusted history nonprice fields changed")
-    metadata_changed = not old[float_metadata].equals(prefix[float_metadata])
-    if old.equals(prefix):
-        return None
-    # A real ex-date rebase changes the adjusted scale but not the preceding raw close.
-    old_raw = pd.read_csv(prior_root / (symbol + ".raw.csv"))
-    new_raw = pd.read_csv(root / (symbol + ".raw.csv"))
-    prior_raw = old_raw.loc[old_raw["date"] == previous]
-    current_raw = new_raw.loc[new_raw["date"] == previous]
-    raw_columns = ["date", *price, "volume", "amount"] if metadata_changed else list(old_raw)
-    if (len(prior_raw) != 1 or not prior_raw[raw_columns].reset_index(drop=True).equals(
-            current_raw[raw_columns].reset_index(drop=True))):
-        raise ValueError("raw history changed with adjusted history")
-    factor = float(old.iloc[-1]["close"] / prefix.iloc[-1]["close"])
-    if not math.isfinite(factor) or factor <= 0 or not ((old[price] - prefix[price] * factor).abs() <= 0.011).all().all():
-        raise ValueError("adjusted history is not a uniform price rebase")
-    if metadata_changed and not old[price].equals(prefix[price]):
-        raise ValueError("price and float metadata both changed")
-    today = current.tail(1).copy()
-    today[price] = today[price] * factor
-    pd.concat([old, today], ignore_index=True).to_csv(current_path, index=False)
-    return factor
 
 
 def _refresh_once(root: Path, day: str, previous: str, *, prior_audit: dict | None = None,

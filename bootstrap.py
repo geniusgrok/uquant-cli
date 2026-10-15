@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 CLI_ROOT = Path(__file__).resolve().parent
 SOURCE_REPOSITORY = "https://github.com/geniusgrok/uquant.git"
+APPROVED_SOURCE_SHA = "01782415c5cb9a8eda1c5bbb3c191325ea76faac"
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 def call(command: list[str], cwd: Path, env: dict[str, str], events: list,
@@ -33,6 +34,9 @@ def prepare(root: Path, events: list, *, validation: bool = False) -> tuple[Path
     source = Path(os.environ["UQUANT_SOURCE_DIR"])
     if not source.resolve().is_relative_to(CLI_ROOT.resolve()) or not (source / "uquant").is_dir():
         raise RuntimeError("production source checkout missing")
+    sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip()
+    if not validation and sha != APPROVED_SOURCE_SHA:
+        raise RuntimeError("production source identity is not approved")
     env = os.environ.copy()
     env.update({"PYTHONPATH": str(CLI_ROOT) + os.pathsep + str(source),
                 "UV_CACHE_DIR": str(root / "uv-cache"), "UV_PYTHON_DOWNLOADS": "never",
@@ -40,7 +44,6 @@ def prepare(root: Path, events: list, *, validation: bool = False) -> tuple[Path
     # Defense in depth: this checkout has no write token and no usable push URL.
     subprocess.run(["git", "config", "remote.origin.pushurl", "disabled://source-read-only"],
                    cwd=source, check=True, capture_output=True)
-    sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip()
     env["UQUANT_SOURCE_SHA"] = sha
     env["UQUANT_STARTED_AT"] = datetime.now(SHANGHAI).isoformat()
     install = ["uv", "sync", "--frozen", "--extra", "data"]

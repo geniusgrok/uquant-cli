@@ -1,12 +1,13 @@
 import contextlib
 import io
 import os
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 from runner import main
-from bootstrap import SOURCE_REPOSITORY
+from bootstrap import APPROVED_SOURCE_SHA, SOURCE_REPOSITORY, prepare
 from uquant_cli.store import GitStore
 
 
@@ -19,13 +20,26 @@ class BootstrapTests(unittest.TestCase):
                 self.assertNotIn("ychenracing/uquant", text)
                 self.assertEqual(text.count("repository: geniusgrok/uquant\n"), 1)
                 checkout = text.split("repository: geniusgrok/uquant\n", 1)[1].split("\n      - ", 1)[0]
-                self.assertIn("ref: main", checkout)
+                source_ref = APPROVED_SOURCE_SHA if name == "uquant-daily-report.yml" else "main"
+                self.assertIn("ref: " + source_ref, checkout)
                 self.assertIn("token: ${{ secrets.UQUANT_READ_TOKEN }}", checkout)
                 self.assertIn("persist-credentials: false", checkout)
 
     def test_transferred_source_is_not_a_report_destination(self):
         with self.assertRaisesRegex(ValueError, "unapproved write destination"):
             GitStore(Path("unused"), SOURCE_REPOSITORY)
+
+    def test_unapproved_source_identity_cannot_start_installation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source"
+            (source / "uquant").mkdir(parents=True)
+            with patch.dict(os.environ, {"UQUANT_SOURCE_DIR": str(source)}):
+                with patch("bootstrap.CLI_ROOT", root), patch("bootstrap.call") as install:
+                    with patch("bootstrap.subprocess.check_output", return_value="f" * 40):
+                        with self.assertRaisesRegex(RuntimeError, "source identity is not approved"):
+                            prepare(root / "runtime", [])
+                    install.assert_not_called()
 
     def test_unapproved_runner_does_not_execute(self):
         with patch.dict(os.environ, {"GITHUB_REPOSITORY": "other/repo"}, clear=True):
@@ -55,6 +69,7 @@ class BootstrapTests(unittest.TestCase):
     def test_workflow_writes_only_to_cli_and_retries_late_market_data(self):
         text = Path(".github/workflows/uquant-daily-report.yml").read_text()
         self.assertEqual(text.count("cron:"), 3)
+        self.assertNotIn("\n  push:", text)
         for schedule in ("31 8 * * 1-5", "36 9 * * 1-5", "36 10 * * 1-5"):
             self.assertIn("cron: '" + schedule + "'", text)
         self.assertIn("contents: write", text)

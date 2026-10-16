@@ -1548,6 +1548,18 @@
   "source": "baostock"
  },
  {
+  "event_id": "sh688300:2026-10-16:distribution",
+  "symbol": "sh688300",
+  "announce_date": "2026-08-15",
+  "register_date": "2026-10-15",
+  "ex_date": "2026-10-16",
+  "pay_date": "2026-10-16",
+  "cash_per_share": 0.0,
+  "share_ratio": 0.3,
+  "description": "10转3",
+  "source": "baostock"
+ },
+ {
   "event_id": "sh688347:2024-06-07:distribution",
   "symbol": "sh688347",
   "announce_date": "2024-03-29",

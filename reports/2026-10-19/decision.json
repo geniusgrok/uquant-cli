@@ -1,0 +1,770 @@
+{
+  "date": "2026-10-19",
+  "decision_digest": "c485c4ffea2c8cff27b3b047286eff4c918ac3b6519a60f7046877a307d329f1",
+  "opportunity": "RECOVERY",
+  "pending_orders": [],
+  "risk": "CAUTION",
+  "risk_summary": {
+    "active_strategic_epoch_id": "",
+    "acute_sector_evacuation": false,
+    "ai_fast_return": -0.08608977020293265,
+    "base_family_active": {
+      "breadth_structure": true,
+      "capital_damage": false,
+      "covariance_stress": false,
+      "leadership_damage": false,
+      "live_book_damage": false,
+      "market_velocity": true
+    },
+    "base_first_family_dates": {
+      "breadth_structure": "2014-02-25",
+      "covariance_stress": "2015-08-18",
+      "market_velocity": "2014-02-25"
+    },
+    "base_freeze_new_risk": true,
+    "base_target_gross_cap": 1.0,
+    "below_ma20_ratio": 1.0,
+    "breadth20": 0.0,
+    "breadth60": 0.0,
+    "broad_ret120": -0.12252587342585564,
+    "broad_ret20": -0.07441439822672147,
+    "broad_ret5": -0.026456491236269142,
+    "broad_ret60": -0.07828696457819506,
+    "broad_speed": -0.038292900658986495,
+    "capital_budget_level": 0,
+    "capital_drawdown": 0.0,
+    "chronic_level": 0,
+    "combined_family_active": {
+      "breadth_structure": true,
+      "capital_damage": false,
+      "covariance_stress": false,
+      "leadership_damage": false,
+      "live_book_damage": false,
+      "market_velocity": true
+    },
+    "combined_family_vote_count": 2,
+    "configured_user_universe_size": 13,
+    "core_allocation": {
+      "as_of": "2026-10-19",
+      "final_freeze_new_risk": true,
+      "final_gross_cap": 1.0,
+      "freeze_new_risk": true,
+      "gross_cap": 1.0,
+      "late_fill_order_ids": [],
+      "ordinary_market": {
+        "as_of": "2026-10-19",
+        "confirmed": false,
+        "credible_symbols": [],
+        "impulse": false,
+        "leader_cycle_armed": false,
+        "leader_cycle_confirmation": {
+          "observed": 0,
+          "required": 3
+        },
+        "mature_entry_open": false,
+        "missing_market_fields": [],
+        "persistent_mature_entry_open": false,
+        "persistent_maturity": {
+          "observed": 0,
+          "required": 5,
+          "witnesses": []
+        },
+        "repair_mature_entry_open": false,
+        "tech_ret120": -0.054994097247066165
+      },
+      "planning_scope": "ALLOCATOR_PROPOSAL",
+      "scope": "FINAL_DECISION",
+      "symbols": {
+        "sh603986": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.17891635109289558
+        },
+        "sh688072": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.6375357411617139
+        },
+        "sh688120": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.7196696767758862
+        },
+        "sh688256": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.4642945421877788
+        },
+        "sh688300": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.5157261270449981
+        },
+        "sh688361": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.7431578960009585
+        },
+        "sh688498": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.25720990612033423
+        },
+        "sz002384": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.1618681332517606
+        },
+        "sz002409": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.27211653834128297
+        },
+        "sz300054": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.46876372112458037
+        },
+        "sz300308": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.2945642340066451
+        },
+        "sz300394": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.537571108306983
+        },
+        "sz300502": {
+          "entry": {
+            "block": "NOT_MATURE",
+            "required_confirmation": 5
+          },
+          "final_target_reason": "NO_TARGET",
+          "final_target_weight": 0.0,
+          "held_weight": 0.0,
+          "order_planning": {
+            "block": "NO_TARGET"
+          },
+          "orders": [],
+          "proposal_weight": 0.0,
+          "rank_score": 0.26948287532879717
+        }
+      },
+      "unreserved_cash_after": 1.0,
+      "unreserved_cash_before": 1.0
+    },
+    "decision_input_identity": {
+      "as_of": "2026-10-19",
+      "code_hash": "5216fc2733d2772b87f0ef0da1b68e033f6b515465cd868c6e553a34ef3bc660",
+      "data_hash": "83d6083507a633f7b2c4d00f6378682b77ab42aca1ea74be260cdf35e35cbb56"
+    },
+    "declining_ratio": 0.9547152194211017,
+    "deployed_drawdown": 0.0,
+    "effective_config_sha256": "0b58e22be7bd9f25bd78ccfff9252b0a64ca329ebfeb2eb2b85095373908247d",
+    "evidence_families": {
+      "breadth_structure": [
+        "sector_breadth_shock",
+        "below_ma20_structure",
+        "multi_industry_sync"
+      ],
+      "capital_damage": [
+        "capital_damage"
+      ],
+      "covariance_stress": [
+        "correlation_shock",
+        "volatility_shock"
+      ],
+      "leadership_damage": [
+        "leader_failure",
+        "anchor_break"
+      ],
+      "live_book_damage": [
+        "live_book_damage"
+      ],
+      "market_velocity": [
+        "index_velocity"
+      ]
+    },
+    "factor_profile": "RECOVERY",
+    "family_vote_count": 4,
+    "family_votes": {
+      "breadth_structure": true,
+      "capital_damage": false,
+      "covariance_stress": false,
+      "leadership_damage": false,
+      "live_book_damage": false,
+      "market_velocity": true
+    },
+    "first_base_date": {},
+    "first_sentinel_date": "2026-10-19",
+    "flat_book_capital_repair": {
+      "account_identity": "",
+      "capital_budget_level": 0,
+      "config_identity": "",
+      "first_observed_session": "",
+      "healthy_session_count": 0,
+      "last_counted_session": "",
+      "last_observed_session": "",
+      "last_ready_session": "",
+      "last_reset_session": "",
+      "predicate_results": [],
+      "rejection_reasons": [],
+      "repair_episode_id": "",
+      "repair_target_level": 0,
+      "required_healthy_sessions": 0,
+      "reset_reason": "",
+      "risk_reference_universe_identity": "",
+      "status": "BLOCKED"
+    },
+    "freeze_new_risk": true,
+    "group_balanced_below_ma20_ratio": 1.0,
+    "group_balanced_breadth20": 0.0,
+    "group_balanced_breadth60": 0.0,
+    "group_balanced_declining_ratio": 0.9682539682539683,
+    "held_damage_ratio": 0.0,
+    "held_repair_ratio": 0.0,
+    "independent_damage": false,
+    "leader_failure_ratio": 0.0,
+    "leader_ranking": [
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "equipment",
+        "mature": false,
+        "score": 0.7431578960009585,
+        "symbol": "sh688361"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "equipment",
+        "mature": false,
+        "score": 0.7196696767758862,
+        "symbol": "sh688120"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "equipment",
+        "mature": false,
+        "score": 0.6375357411617139,
+        "symbol": "sh688072"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "optical",
+        "mature": false,
+        "score": 0.537571108306983,
+        "symbol": "sz300394"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "materials",
+        "mature": false,
+        "score": 0.5157261270449981,
+        "symbol": "sh688300"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "materials",
+        "mature": false,
+        "score": 0.46876372112458037,
+        "symbol": "sz300054"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "compute",
+        "mature": false,
+        "score": 0.4642945421877788,
+        "symbol": "sh688256"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "optical",
+        "mature": false,
+        "score": 0.2945642340066451,
+        "symbol": "sz300308"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "materials",
+        "mature": false,
+        "score": 0.27211653834128297,
+        "symbol": "sz002409"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "optical",
+        "mature": false,
+        "score": 0.26948287532879717,
+        "symbol": "sz300502"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "optical",
+        "mature": false,
+        "score": 0.25720990612033423,
+        "symbol": "sh688498"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "memory",
+        "mature": false,
+        "score": 0.17891635109289558,
+        "symbol": "sh603986"
+      },
+      {
+        "confidence": 1.0,
+        "emerging": false,
+        "industry": "optical",
+        "mature": false,
+        "score": 0.1618681332517606,
+        "symbol": "sz002384"
+      }
+    ],
+    "median_correlation": 0.6044559310355513,
+    "name_weighted_below_ma20_ratio": 1.0,
+    "name_weighted_breadth20": 0.0,
+    "name_weighted_breadth60": 0.0,
+    "name_weighted_declining_ratio": 0.9411764705882353,
+    "operating_drawdown": 0.0,
+    "reasons": [
+      "sector breadth shock",
+      "MA20 structural damage",
+      "multi-industry synchronization",
+      "index velocity shock"
+    ],
+    "reduction_level": 1,
+    "reference_coverage": 1.0,
+    "reference_details": {
+      "expected_count": 34.0,
+      "group_count": 8.0,
+      "visible_count": 34.0
+    },
+    "reference_dispersion20": 0.08624020893683255,
+    "reference_expected_symbols": [
+      "sh600487",
+      "sh601869",
+      "sh603688",
+      "sh603986",
+      "sh688008",
+      "sh688012",
+      "sh688019",
+      "sh688037",
+      "sh688041",
+      "sh688072",
+      "sh688082",
+      "sh688110",
+      "sh688120",
+      "sh688146",
+      "sh688200",
+      "sh688233",
+      "sh688256",
+      "sh688268",
+      "sh688300",
+      "sh688347",
+      "sh688361",
+      "sh688498",
+      "sh688766",
+      "sz000636",
+      "sz002281",
+      "sz002371",
+      "sz002409",
+      "sz300054",
+      "sz300223",
+      "sz300308",
+      "sz300394",
+      "sz300502",
+      "sz300604",
+      "sz300666"
+    ],
+    "reference_global_strength": 0.009056956115779658,
+    "reference_industry_strength": {
+      "compute": 0.33937500000000004,
+      "design": 0.4871875,
+      "equipment": 0.534375,
+      "foundry": 0.39156250000000004,
+      "materials": 0.35062499999999996,
+      "memory": 0.264375,
+      "optical": 0.198125,
+      "passives": 0.4878125
+    },
+    "reference_visible_groups": [
+      "compute",
+      "design",
+      "equipment",
+      "foundry",
+      "materials",
+      "memory",
+      "optical",
+      "passives"
+    ],
+    "reference_visible_symbols": [
+      "sh600487",
+      "sh601869",
+      "sh603688",
+      "sh603986",
+      "sh688008",
+      "sh688012",
+      "sh688019",
+      "sh688037",
+      "sh688041",
+      "sh688072",
+      "sh688082",
+      "sh688110",
+      "sh688120",
+      "sh688146",
+      "sh688200",
+      "sh688233",
+      "sh688256",
+      "sh688268",
+      "sh688300",
+      "sh688347",
+      "sh688361",
+      "sh688498",
+      "sh688766",
+      "sz000636",
+      "sz002281",
+      "sz002371",
+      "sz002409",
+      "sz300054",
+      "sz300223",
+      "sz300308",
+      "sz300394",
+      "sz300502",
+      "sz300604",
+      "sz300666"
+    ],
+    "reversal_observations": {},
+    "risk_anchor_group_count": 0,
+    "risk_anchor_signature": "",
+    "risk_anchor_symbols": [],
+    "sector_guard_active": false,
+    "sector_guard_active_sessions": 0,
+    "sector_guard_equal_return": null,
+    "sector_guard_negative_exposure": null,
+    "sector_guard_positive_breadth": null,
+    "sector_guard_shock_count": 0,
+    "sector_guard_weighted_return": null,
+    "sector_stress_ratio": 1.0,
+    "sentinel_assessment": {
+      "confidence": 1.0,
+      "coverage": {
+        "component_observation": 1.0,
+        "confidence": 1.0,
+        "held_industry_mapping": 1.0,
+        "missing_indices": [],
+        "new_symbols": [],
+        "reference_warmup": 1.0,
+        "stale_symbols": [],
+        "status": "READY",
+        "subindustry_coverage": 1.0
+      },
+      "date": "2026-10-19",
+      "evidence_families": [
+        "breadth_structure",
+        "market_velocity"
+      ],
+      "first_evidence_date": "2026-10-19",
+      "freeze_new_risk": true,
+      "level": "DEFENSIVE",
+      "metrics": {
+        "broad_fast_return": -0.026456491236269142,
+        "broad_medium_return": -0.07441439822672147,
+        "capital_drawdown": 0.0,
+        "confirmation_history_trusted": 0.0,
+        "equal_subindustry_below_ma20": 1.0,
+        "equal_subindustry_downside_breadth": 0.9682539682539683,
+        "equal_subindustry_fast_return": -0.09509299916504517,
+        "evidence_confirmation_days": 1.0,
+        "held_downside_breadth": 0.0,
+        "held_fast_return": 0.0,
+        "index_relative_speed": -0.05120184351554102,
+        "latest_visible_ordinal": 739908.0,
+        "leader_below_ma20": 0.0,
+        "leader_fast_return": 0.0,
+        "median_correlation": 0.5784882074304458,
+        "name_weighted_fast_return": -0.08608977020293265,
+        "synchronized_subindustry_damage": 1.0,
+        "tech_fast_return": -0.07765833475181017,
+        "tech_medium_return": -0.15465204190617898,
+        "volatility_ratio": 0.7116886379661498
+      },
+      "reasons": [
+        "dual indices show fast causal deterioration",
+        "equal-subindustry breadth and MA20 structure deteriorated"
+      ],
+      "suggested_gross_cap": 0.5,
+      "weakest_subindustries": [
+        "design",
+        "foundry",
+        "semicap"
+      ]
+    },
+    "sentinel_bull_silent": false,
+    "sentinel_causal_active_families": [
+      "breadth_structure",
+      "market_velocity"
+    ],
+    "sentinel_causal_confidence": 1.0,
+    "sentinel_causal_confirmation_authority_enabled": false,
+    "sentinel_causal_confirmation_days": 11,
+    "sentinel_causal_confirmation_history_trusted": true,
+    "sentinel_causal_confirmed_since": "2026-09-28",
+    "sentinel_causal_coverage_status": "READY",
+    "sentinel_causal_earlier_families": [],
+    "sentinel_causal_effective_level": "DEFENSIVE",
+    "sentinel_causal_incremental_families": [],
+    "sentinel_causal_observed_level": "DEFENSIVE",
+    "sentinel_causal_reasons": [
+      "dual indices show fast causal deterioration",
+      "equal-subindustry breadth and MA20 structure deteriorated"
+    ],
+    "sentinel_causal_repair_days": 0,
+    "sentinel_causal_trust_reasons": [],
+    "sentinel_causal_weakest_subindustries": [
+      "design",
+      "foundry",
+      "semicap"
+    ],
+    "sentinel_confirmation_days": 1,
+    "sentinel_confirmation_history_trusted": false,
+    "sentinel_earlier_families": [],
+    "sentinel_earlier_supported": false,
+    "sentinel_family_active": {
+      "breadth_structure": true,
+      "capital_damage": false,
+      "covariance_stress": false,
+      "leadership_damage": false,
+      "live_book_damage": false,
+      "market_velocity": true
+    },
+    "sentinel_first_family_dates": {
+      "breadth_structure": "2014-02-26",
+      "covariance_stress": "2024-09-30",
+      "market_velocity": "2014-02-25"
+    },
+    "sentinel_freeze_new_risk": false,
+    "sentinel_incremental": false,
+    "sentinel_incremental_families": [],
+    "sentinel_mode": "FREEZE_ONLY",
+    "sentinel_repair_days_required": 3,
+    "sentinel_severe_direct": false,
+    "severity": "NORMAL",
+    "shock_state": "NONE",
+    "strategic_candidate_signature": "",
+    "strategic_cash_rearm": {
+      "authorization_id": "",
+      "authorized": false,
+      "authorized_session": "",
+      "candidate_symbol": "",
+      "capital_budget_level": 0,
+      "consumed_grant_id": "",
+      "consumed_order": null,
+      "observed_session": "",
+      "point_in_time_industry_identity": "",
+      "predicate_results": [],
+      "qualification_evidence_sha256": "",
+      "qualification_quorum": "",
+      "qualification_ready": false,
+      "qualification_reference_universe_identity": "",
+      "qualification_route": "",
+      "qualification_signature": "",
+      "rejection_reasons": [],
+      "repair_episode_id": "",
+      "risk_reference_universe_identity": "",
+      "route_consistent_absolute_quality": false,
+      "status": "OBSERVING",
+      "tradable_universe_identity": ""
+    },
+    "strategic_cohort_active": false,
+    "strategic_current_gross": 0,
+    "strategic_damage_guard": false,
+    "strategic_epoch": 0,
+    "strategic_epochs": [],
+    "strategic_grant": null,
+    "strategic_guard_level2_overlay": false,
+    "strategic_qualification": {
+      "candidate_invalidation_reason": "absolute_qualification_failed",
+      "candidate_symbol": "",
+      "candidate_symbols": [],
+      "deployment_block_reason": "qualification_not_ready",
+      "deployment_blocked": true,
+      "evidence_family_status": {},
+      "qualification_evidence_sha256": "",
+      "qualification_last_observed_session": "",
+      "qualification_quorum": "",
+      "qualification_ready": false,
+      "qualification_route": "",
+      "qualification_signature": "",
+      "qualification_streak": 0,
+      "unavailable_reference_symbols": []
+    },
+    "strategic_successor_qualification": {
+      "candidate_invalidation_reason": "",
+      "candidate_symbol": "",
+      "candidate_symbols": [],
+      "deployment_block_reason": "",
+      "deployment_blocked": false,
+      "evidence_family_status": {},
+      "qualification_evidence_sha256": "",
+      "qualification_last_observed_session": "",
+      "qualification_quorum": "",
+      "qualification_ready": false,
+      "qualification_route": "",
+      "qualification_signature": "",
+      "qualification_streak": 0,
+      "unavailable_reference_symbols": []
+    },
+    "strategic_universe_identities": {
+      "qualification_reference": "f1d2c0b1736706c499be80aad0afeb0f44a9672556c2c21cec040aa38a11482e",
+      "risk_reference": "764a65e9838280570a1c95121a1ce2e893ccd0604b7bb0cf6ed524432ddfc1da",
+      "tradable": "7bb6aa092126757e3a471841de7891bfd3c50f52bad0b31c56e7435c58ede31c"
+    },
+    "system_gross_cap": 1.0,
+    "target_gross_cap": 1.0,
+    "tech_ret120": -0.054994097247066165,
+    "tech_ret20": -0.15465204190617898,
+    "tech_ret5": -0.07765833475181017,
+    "tech_ret60": -0.23008598076845033,
+    "tech_speed": -0.1602083921141626,
+    "transition_damage": 0.5903176298445802,
+    "trend_health": 0.347043680787811,
+    "universe_size_is_diagnostic_only": true,
+    "volatility_ratio": 0.5457220555773841,
+    "votes": 4
+  },
+  "target_gross": 0,
+  "target_k": 0,
+  "targets": []
+}

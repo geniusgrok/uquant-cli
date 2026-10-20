@@ -1,10 +1,10 @@
 {
-  "events_path": "runs/39405404740-1/events.json",
-  "finished_at": "2026-10-20T18:07:38.223912+08:00",
-  "record_path": "runs/39405404740-1/status.json",
-  "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/39405404740",
+  "events_path": "runs/39412351126-1/events.json",
+  "finished_at": "2026-10-20T19:04:45.854537+08:00",
+  "record_path": "runs/39412351126-1/status.json",
+  "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/39412351126",
   "source_sha": "01782415c5cb9a8eda1c5bbb3c191325ea76faac",
-  "started_at": "2026-10-20T18:05:32.882442+08:00",
-  "status": "COMPLETE",
+  "started_at": "2026-10-20T19:04:36.259965+08:00",
+  "status": "REUSED",
   "target_date": "2026-10-20"
 }

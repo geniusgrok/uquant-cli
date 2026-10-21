@@ -1,0 +1,27 @@
+{
+  "failures": {
+    "snapshot": {
+      "category": "provider",
+      "operation": "login",
+      "reason_code": "PROVIDER_UNAVAILABLE",
+      "type": "RuntimeError"
+    }
+  },
+  "provider": "baostock",
+  "recovery_attempts": [
+    {
+      "attempt": 1,
+      "failures": {
+        "snapshot": {
+          "category": "provider",
+          "operation": "login",
+          "reason_code": "PROVIDER_UNAVAILABLE",
+          "type": "RuntimeError"
+        }
+      },
+      "provider": "baostock",
+      "target_date": "2026-10-21"
+    }
+  ],
+  "target_date": "2026-10-21"
+}

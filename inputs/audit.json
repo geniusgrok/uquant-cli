@@ -1,100 +1,100 @@
 {
-  "base_snapshot": "raw-2026-10-20-6aee4136f062",
+  "base_snapshot": "raw-2026-10-21-5e6b3140144b",
   "failures": {},
-  "fetched_at": "2026-10-21T18:08:44.329053+08:00",
+  "fetched_at": "2026-10-22T18:11:06.027420+08:00",
   "provider": "baostock",
   "quotes": {
     "sh603986": {
       "adjustment": "raw",
-      "change_pct": 1.9792514959458885,
-      "close": 288.02,
-      "date": "2026-10-21",
+      "change_pct": -3.9129227137004285,
+      "close": 276.75,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sh688072": {
       "adjustment": "raw",
-      "change_pct": -2.3809523809523836,
-      "close": 533.0,
-      "date": "2026-10-21",
+      "change_pct": -4.328330206378983,
+      "close": 509.93,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sh688120": {
       "adjustment": "raw",
-      "change_pct": -1.5926044574618992,
-      "close": 215.03,
-      "date": "2026-10-21",
+      "change_pct": -3.1856020090219928,
+      "close": 208.18,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sh688256": {
       "adjustment": "raw",
-      "change_pct": -0.4972855591748093,
-      "close": 916.42,
-      "date": "2026-10-21",
+      "change_pct": -3.544226446389198,
+      "close": 883.94,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sh688300": {
       "adjustment": "raw",
-      "change_pct": -0.9881805851579162,
-      "close": 102.2,
-      "date": "2026-10-21",
+      "change_pct": -6.731898238747558,
+      "close": 95.32,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sh688361": {
       "adjustment": "raw",
-      "change_pct": -1.1453900709219922,
-      "close": 278.77,
-      "date": "2026-10-21",
+      "change_pct": -6.97349069125085,
+      "close": 259.33,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sh688498": {
       "adjustment": "raw",
-      "change_pct": 1.063987727025295,
-      "close": 1021.1,
-      "date": "2026-10-21",
+      "change_pct": -9.901087062971303,
+      "close": 920.0,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sz002384": {
       "adjustment": "raw",
-      "change_pct": 0.8350388866148251,
-      "close": 123.17,
-      "date": "2026-10-21",
+      "change_pct": -7.842818868230895,
+      "close": 113.51,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sz002409": {
       "adjustment": "raw",
-      "change_pct": -0.46272493573265017,
-      "close": 96.8,
-      "date": "2026-10-21",
+      "change_pct": -4.555785123966938,
+      "close": 92.39,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sz300054": {
       "adjustment": "raw",
-      "change_pct": 0.1893613358581403,
-      "close": 58.2,
-      "date": "2026-10-21",
+      "change_pct": -3.041237113402062,
+      "close": 56.43,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sz300308": {
       "adjustment": "raw",
-      "change_pct": -0.17440963111591268,
-      "close": 646.77,
-      "date": "2026-10-21",
+      "change_pct": -8.760455803454082,
+      "close": 590.11,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sz300394": {
       "adjustment": "raw",
-      "change_pct": 5.104136110296276,
-      "close": 214.98,
-      "date": "2026-10-21",
+      "change_pct": -8.363568704065493,
+      "close": 197.0,
+      "date": "2026-10-22",
       "provider": "baostock"
     },
     "sz300502": {
       "adjustment": "raw",
-      "change_pct": -1.3582855418050155,
-      "close": 294.12,
-      "date": "2026-10-21",
+      "change_pct": -12.277301781585749,
+      "close": 258.01,
+      "date": "2026-10-22",
       "provider": "baostock"
     }
   },
-  "snapshot": "raw-2026-10-21-5e6b3140144b"
+  "snapshot": "raw-2026-10-22-88df1fa22c55"
 }

@@ -1,0 +1,29 @@
+{
+  "failures": {
+    "snapshot": {
+      "category": "provider",
+      "operation": "index_daily",
+      "reason_code": "PROVIDER_UNAVAILABLE",
+      "symbol": "sh000682",
+      "type": "RuntimeError"
+    }
+  },
+  "provider": "baostock",
+  "recovery_attempts": [
+    {
+      "attempt": 1,
+      "failures": {
+        "snapshot": {
+          "category": "provider",
+          "operation": "index_daily",
+          "reason_code": "PROVIDER_UNAVAILABLE",
+          "symbol": "sh000682",
+          "type": "RuntimeError"
+        }
+      },
+      "provider": "baostock",
+      "target_date": "2026-10-23"
+    }
+  ],
+  "target_date": "2026-10-23"
+}

@@ -2,8 +2,8 @@
   "actual_market_date": null,
   "calendar_source": "akshare/Sina",
   "calendar_target_date": "2026-11-11",
-  "checked_at": "2026-11-12T00:25:18.646551+08:00",
-  "events_path": "runs/43058091252-1/events.json",
+  "checked_at": "2026-11-12T01:24:08.709362+08:00",
+  "events_path": "runs/43067748605-1/events.json",
   "failure": {
     "public_location": "market.py:322",
     "reason": "MARKET_INPUT_UNAVAILABLE",
@@ -12,15 +12,15 @@
     "type": "LiveInputError"
   },
   "failure_summary": "1项行情未通过校验（数据接口异常1项）；未使用旧数据替代。",
-  "finished_at": "2026-11-12T00:26:01.183030+08:00",
+  "finished_at": "2026-11-12T01:24:59.392639+08:00",
   "previous_session": "2026-10-22",
-  "record_path": "runs/43058091252-1/status.json",
+  "record_path": "runs/43067748605-1/status.json",
   "requested_date": "2026-11-12",
-  "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/43058091252",
+  "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/43067748605",
   "runner_sha": "0c184c0566cb4cacf271761e609f76ceca9bb77c",
   "selection_reason": "优先补做缺失的最早交易日",
   "source_sha": "01782415c5cb9a8eda1c5bbb3c191325ea76faac",
-  "started_at": "2026-11-12T00:25:12.200503+08:00",
+  "started_at": "2026-11-12T01:24:02.579231+08:00",
   "status": "FAILED",
   "target_date": "2026-10-23"
 }

@@ -648,6 +648,42 @@
   "source": "baostock"
  },
  {
+  "event_id": "sh688008:2026-10-23:distribution",
+  "symbol": "sh688008",
+  "announce_date": "2026-08-29",
+  "register_date": "2026-10-22",
+  "ex_date": "2026-10-23",
+  "pay_date": "2026-10-23",
+  "cash_per_share": 0.2,
+  "share_ratio": 0.0,
+  "description": "10派2元（含税，扣税后1.8或2元）",
+  "source": "baostock"
+ },
+ {
+  "event_id": "sh688008:2026-10-23:distribution",
+  "symbol": "sh688008",
+  "announce_date": "2026-08-29",
+  "register_date": "2026-10-22",
+  "ex_date": "2026-10-23",
+  "pay_date": "2026-10-23",
+  "cash_per_share": 0.2,
+  "share_ratio": 0.0,
+  "description": "10派2元（含税，扣税后1.8或2元）",
+  "source": "baostock"
+ },
+ {
+  "event_id": "sh688008:2026-10-23:distribution",
+  "symbol": "sh688008",
+  "announce_date": "2026-08-29",
+  "register_date": "2026-10-22",
+  "ex_date": "2026-10-23",
+  "pay_date": "2026-10-23",
+  "cash_per_share": 0.2,
+  "share_ratio": 0.0,
+  "description": "10派2元（含税，扣税后1.8或2元）",
+  "source": "baostock"
+ },
+ {
   "event_id": "sh688012:2023-09-26:distribution",
   "symbol": "sh688012",
   "announce_date": "2023-08-25",

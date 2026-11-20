@@ -3408,6 +3408,54 @@
   "source": "baostock"
  },
  {
+  "event_id": "sz300604:2026-10-30:distribution",
+  "symbol": "sz300604",
+  "announce_date": "2026-08-28",
+  "register_date": "2026-10-29",
+  "ex_date": "2026-10-30",
+  "pay_date": "2026-10-30",
+  "cash_per_share": 0.1,
+  "share_ratio": 0.0,
+  "description": "10派1元（含税，扣税后0.9或1元）",
+  "source": "baostock"
+ },
+ {
+  "event_id": "sz300604:2026-10-30:distribution",
+  "symbol": "sz300604",
+  "announce_date": "2026-08-28",
+  "register_date": "2026-10-29",
+  "ex_date": "2026-10-30",
+  "pay_date": "2026-10-30",
+  "cash_per_share": 0.1,
+  "share_ratio": 0.0,
+  "description": "10派1元（含税，扣税后0.9或1元）",
+  "source": "baostock"
+ },
+ {
+  "event_id": "sz300604:2026-10-30:distribution",
+  "symbol": "sz300604",
+  "announce_date": "2026-08-28",
+  "register_date": "2026-10-29",
+  "ex_date": "2026-10-30",
+  "pay_date": "2026-10-30",
+  "cash_per_share": 0.1,
+  "share_ratio": 0.0,
+  "description": "10派1元（含税，扣税后0.9或1元）",
+  "source": "baostock"
+ },
+ {
+  "event_id": "sz300604:2026-10-30:distribution",
+  "symbol": "sz300604",
+  "announce_date": "2026-08-28",
+  "register_date": "2026-10-29",
+  "ex_date": "2026-10-30",
+  "pay_date": "2026-10-30",
+  "cash_per_share": 0.1,
+  "share_ratio": 0.0,
+  "description": "10派1元（含税，扣税后0.9或1元）",
+  "source": "baostock"
+ },
+ {
   "event_id": "sz300666:2018-06-07:distribution",
   "symbol": "sz300666",
   "announce_date": "2018-04-23",

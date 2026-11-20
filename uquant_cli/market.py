@@ -141,6 +141,37 @@ def _validated_extension(fresh, halted, old, symbol: str, day: str, diagnostic: 
     return extension
 
 
+def _validated_index(fresh, symbol: str, anchor: str, day: str, diagnostic: dict) -> pd.DataFrame:
+    """Check both raw index dates before the production updater chains returns."""
+    from uquant.data import DataContractError, DataStore
+    from uquant.data_update import INDEX_COLUMNS
+
+    if not isinstance(fresh, pd.DataFrame) or not set(INDEX_COLUMNS) <= set(fresh.columns):
+        raise MarketDataError("RESPONSE_FORMAT_INVALID")
+    diagnostic["normalized_response_rows"] = len(fresh)
+    values = fresh["date"]
+    try:
+        dates = pd.to_datetime(values, format="%Y-%m-%d", errors="raise")
+        if dates.isna().any() or not values.eq(dates.dt.strftime("%Y-%m-%d")).all():
+            raise ValueError("invalid response dates")
+    except (TypeError, ValueError) as exc:
+        raise MarketDataError("RESPONSE_FORMAT_INVALID") from exc
+    anchor_rows = int(values.eq(anchor).sum())
+    target_rows = int(values.eq(day).sum())
+    diagnostic.update(anchor_rows=anchor_rows, target_rows=target_rows)
+    if anchor_rows != 1:
+        raise MarketDataError("HISTORICAL_ANCHOR_DUPLICATED" if anchor_rows else "HISTORICAL_ANCHOR_MISSING")
+    if (values < anchor).any() or (values > day).any():
+        raise MarketDataError("RESPONSE_DATE_OUT_OF_RANGE")
+    try:
+        DataStore._validate(fresh, symbol)
+    except (DataContractError, TypeError, ValueError) as exc:
+        raise MarketDataError("RESPONSE_FORMAT_INVALID") from exc
+    if not target_rows:
+        raise MarketDataError("TARGET_BAR_UNAVAILABLE")
+    return fresh
+
+
 def session_context(dates: list[str], now: datetime) -> dict:
     if now.tzinfo is None:
         raise ValueError("timezone-aware clock required")
@@ -287,8 +318,10 @@ def _refresh_once(root: Path, day: str, previous: str, *, prior_audit: dict | No
 
         def index_daily(self, symbol, start, end):
             diagnostic.clear()
-            diagnostic.update(operation="index_daily", symbol=symbol)
-            return _retry_request(lambda: live.index_daily(symbol, start, end))
+            diagnostic.update(operation="index_daily", symbol=symbol, start=start, end=end,
+                              provider="tencent" if symbol == "sh000682" else "baostock")
+            fresh = _retry_request(lambda: live.index_daily(symbol, start, end))
+            return _validated_index(fresh, symbol, start, end, diagnostic)
 
     try:
         live = _retry_request(DiagnosticProvider, attempts=4)
@@ -317,6 +350,9 @@ def _refresh_once(root: Path, day: str, previous: str, *, prior_audit: dict | No
     except Exception as exc:
         detail = {"type": type(exc).__name__, "category": _failure_category(exc),
                   "reason_code": _reason_code(exc), **diagnostic}
+        if isinstance(exc, RuntimeError) and str(exc).startswith("snapshot failed data-check; not published:"):
+            detail = {"type": type(exc).__name__, "operation": "snapshot_validation",
+                      "category": "data_contract", "reason_code": "SNAPSHOT_DATA_CHECK_FAILED"}
         put(root, "audit.json", {"provider": "baostock", "target_date": day,
             "failures": {"snapshot": detail}})
         raise LiveInputError({"snapshot": detail}) from exc

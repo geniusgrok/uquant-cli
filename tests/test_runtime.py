@@ -567,41 +567,81 @@ def raw_snapshot_fixture(tmp_path):
     return root, bars
 
 
-def test_recovery_rechecks_risk_basket_with_native_snapshot_validator(tmp_path, monkeypatch):
+@pytest.mark.parametrize('case', ['stock_late', 'index_late', 'index_missing_anchor',
+                                 'index_invalid', 'snapshot_invalid'])
+def test_recovery_rechecks_risk_basket_with_native_snapshot_validator(tmp_path, monkeypatch, case):
     import uquant.data
     import uquant.data_update
     import uquant.engine
     import pandas as pd
     base, bars = raw_snapshot_fixture(tmp_path)
-    stock_calls, waits = [], []
+    stock_calls, index_calls, waits = [], [], []
 
     class Provider:
         name = 'baostock'
         def stock_daily(self, symbol, start, end):
             stock_calls.append(symbol)
             anchor = bars.tail(1)
-            if symbol == 'sz300308' and stock_calls.count(symbol) == 1:
+            if case == 'stock_late' and symbol == 'sz300308' and stock_calls.count(symbol) == 1:
                 return anchor, []
             return pd.concat([anchor, anchor.assign(date=end)], ignore_index=True), []
         def dividends(self, symbol, start, end):
             return []
         def index_daily(self, symbol, start, end):
-            anchor = bars.tail(1)
-            return pd.concat([anchor, anchor.assign(date=end)], ignore_index=True)
+            assert (start, end) == ('2026-09-24', '2026-09-28')
+            index_calls.append(symbol)
+            anchor = bars.tail(1)[list(uquant.data_update.INDEX_COLUMNS)].copy()
+            levels = ['open', 'high', 'low', 'close']
+            anchor[levels] *= 2
+            target = anchor.assign(date=end)
+            target[levels] *= 1.1
+            if symbol == 'sh000682':
+                if case == 'index_late' and index_calls.count(symbol) == 1:
+                    return anchor
+                if case == 'index_missing_anchor':
+                    return target
+                if case == 'index_invalid':
+                    return pd.concat([anchor, target.assign(close=float('nan'))], ignore_index=True)
+            return pd.concat([anchor, target], ignore_index=True)
 
     monkeypatch.setattr(uquant.data_update, 'BaostockProvider', Provider)
     monkeypatch.setattr(uquant.engine, 'REFERENCE_UNIVERSE', ('sh600487',))
     monkeypatch.setattr(market, 'SYMBOLS', ('sz300308',))
     monkeypatch.setattr(market, 'pause', waits.append)
     destination = tmp_path / 'inputs'
+    if case == 'snapshot_invalid':
+        monkeypatch.setattr(uquant.data_update, 'check_snapshot', lambda *args, **kwargs: {
+            'ok': False, 'issues': [{'severity': 'error', 'detail': 'unpublished internals'}]})
+    expected = {'index_missing_anchor': 'HISTORICAL_ANCHOR_MISSING',
+                'index_invalid': 'RESPONSE_FORMAT_INVALID',
+                'snapshot_invalid': 'SNAPSHOT_DATA_CHECK_FAILED'}
+    if case in expected:
+        with pytest.raises(market.LiveInputError) as failed:
+            market.refresh(destination, '2026-09-28', '2026-09-24', prior_root=base)
+        assert failed.value.reason_code == expected[case]
+        detail = json.loads((destination / 'audit.json').read_text())['failures']['snapshot']
+        if case == 'snapshot_invalid':
+            assert detail['operation'] == 'snapshot_validation' and 'provider' not in detail
+            assert 'unpublished internals' not in (destination / 'audit.json').read_text()
+        else:
+            assert (detail['provider'], detail['symbol']) == ('tencent', 'sh000682')
+        assert waits == [] and not (destination / 'DATA_MANIFEST.json').exists()
+        return
     audit = market.refresh(destination, '2026-09-28', '2026-09-24', prior_root=base)
     assert stock_calls == ['sh600487', 'sz300308'] * 2
     assert waits == [60]
-    assert audit['recovery_attempts'][0]['failures']['snapshot']['reason_code'] == 'TARGET_BAR_UNAVAILABLE'
+    recovered = audit['recovery_attempts'][0]['failures']['snapshot']
+    assert recovered['reason_code'] == 'TARGET_BAR_UNAVAILABLE'
+    if case == 'index_late':
+        assert (recovered['provider'], recovered['symbol'], recovered['anchor_rows'],
+                recovered['target_rows']) == ('tencent', 'sh000682', 1, 0)
     report = uquant.data_update.check_snapshot(destination, as_of='2026-09-28', daily=True,
                                                required=['sh600487', 'sz300308'])
     assert report['ok'] and set(report['coverage']) == {'sh600487', 'sz300308', 'sh000300', 'sh000682'}
     pd.testing.assert_frame_equal(pd.read_csv(destination / 'sh600487.csv').iloc[:-1], bars)
+    index = pd.read_csv(destination / 'sh000682.csv')
+    pd.testing.assert_frame_equal(index.iloc[:-1], bars[list(uquant.data_update.INDEX_COLUMNS)])
+    assert index.iloc[-1]['close'] == pytest.approx(11.)
 
 
 @pytest.mark.parametrize('kind,reason', [('numeric', 'RESPONSE_FORMAT_INVALID'),

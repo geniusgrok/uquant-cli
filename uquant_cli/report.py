@@ -115,7 +115,7 @@ def render(result: dict) -> str:
         f"策略结果状态：**{status_names.get(status, status)}（{status}）**。",
         f"实际生产源码版本：{result.get('source_sha', '未取得')}。",
         f"[查看本次计算的运行记录]({result['run_url']})。",
-        "执行口径：连续、不执行的观察账户，不代表真实账户持仓或成交。",
+        "执行口径：连续、不执行的观察账户，不知道用户真实现金、持仓、成本或成交。观察目标及订单意图不是实际委托；已有持仓的加仓、减仓和退出须结合本人实际记录。",
         f"运行时间：{result.get('started_at', '未取得')} → {result.get('finished_at', '未完成')}。",
         "", "## 重点变化", "",
     ]

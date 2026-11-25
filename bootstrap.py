@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 CLI_ROOT = Path(__file__).resolve().parent
 SOURCE_REPOSITORY = "https://github.com/geniusgrok/uquant.git"
-APPROVED_SOURCE_SHA = "01782415c5cb9a8eda1c5bbb3c191325ea76faac"
+APPROVED_SOURCE_SHA = "834a441e85ff5fbce9199023a7b63bd257c6794f"
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 
 def call(command: list[str], cwd: Path, env: dict[str, str], events: list,

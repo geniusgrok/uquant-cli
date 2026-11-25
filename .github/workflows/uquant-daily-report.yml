@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           repository: geniusgrok/uquant
-          ref: 01782415c5cb9a8eda1c5bbb3c191325ea76faac
+          ref: 834a441e85ff5fbce9199023a7b63bd257c6794f
           token: ${{ secrets.UQUANT_READ_TOKEN }}
           persist-credentials: false
           path: .runtime/production

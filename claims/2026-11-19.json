@@ -2,6 +2,7 @@
   "calendar_source": "akshare/Sina",
   "calendar_target_date": "2026-11-27",
   "checked_at": "2026-11-28T03:09:05.016885+08:00",
+  "decision_digest": "4b13899b5e3e311f8aa18c074f285d60516c3a3531a6ea96302575b70e1b3053",
   "previous_session": "2026-11-18",
   "requested_date": "2026-11-28",
   "run_url": "https://github.com/geniusgrok/uquant-cli/actions/runs/46054587701",
@@ -9,6 +10,6 @@
   "selection_reason": "优先补做缺失的最早交易日",
   "source_sha": "834a441e85ff5fbce9199023a7b63bd257c6794f",
   "started_at": "2026-11-28T03:08:59.735159+08:00",
-  "status": "STARTED",
+  "status": "COMPLETE",
   "target_date": "2026-11-19"
 }
